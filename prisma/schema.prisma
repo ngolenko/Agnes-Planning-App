@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id                 String   @id @default(cuid())
+  name               String
+  email              String   @unique
+  role               String   @default("")
+  weeklyCapacityDays Float    @default(5)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  allocations    Allocation[]
+  timeOff        TimeOff[]
+  unbillableTime UnbillableTime[]
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects Project[]
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  name            String
+  clientId        String
+  fabricProjectId String?
+  dayRate         Float?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  allocations Allocation[]
+}
+
+model Allocation {
+  id            String   @id @default(cuid())
+  employeeId    String
+  projectId     String
+  weekStartDate DateTime
+  plannedDays   Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, projectId, weekStartDate])
+}
+
+model TimeOff {
+  id         String   @id @default(cuid())
+  employeeId String
+  date       DateTime
+  type       String // vacation, sick, public_holiday
+  status     String   @default("planned") // planned, confirmed
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+}
+
+model UnbillableTime {
+  id            String   @id @default(cuid())
+  employeeId    String
+  weekStartDate DateTime
+  category      String // internal, training, bench, admin
+  plannedDays   Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, weekStartDate, category])
+}
