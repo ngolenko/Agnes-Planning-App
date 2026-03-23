@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
     prevAllocations,
     timeOff,
     unbillable,
+    allAllocations,
     projects,
     clients,
     period: { year, month },

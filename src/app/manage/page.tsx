@@ -27,11 +27,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Employee, Client, Project } from "@/lib/types";
+import { Employee, Client, Project, Allocation } from "@/lib/types";
 
 export default function ManagePage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [clients, setClients] = useState<(Client & { projects: Project[] })[]>([]);
+  const [allocations, setAllocations] = useState<Allocation[]>([]);
   const [showEmployeeDialog, setShowEmployeeDialog] = useState(false);
   const [showClientDialog, setShowClientDialog] = useState(false);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
@@ -46,14 +47,20 @@ export default function ManagePage() {
   const [projName, setProjName] = useState("");
   const [projClientId, setProjClientId] = useState("");
   const [projDayRate, setProjDayRate] = useState("");
+  const [projBudgetDays, setProjBudgetDays] = useState("");
 
   const fetchData = useCallback(async () => {
-    const [empRes, clientRes] = await Promise.all([
+    const [empRes, clientRes, allocRes] = await Promise.all([
       fetch("/api/employees"),
       fetch("/api/clients"),
+      fetch("/api/projects"),
     ]);
     setEmployees(await empRes.json());
     setClients(await clientRes.json());
+    // Fetch all allocations for budget remaining calculation
+    const planRes = await fetch(`/api/planning?year=${new Date().getFullYear()}&month=${new Date().getMonth()}`);
+    const planData = await planRes.json();
+    setAllocations(planData.allAllocations || []);
   }, []);
 
   useEffect(() => {
@@ -113,12 +120,14 @@ export default function ManagePage() {
         name: projName,
         clientId: projClientId,
         dayRate: projDayRate ? parseFloat(projDayRate) : null,
+        budgetDays: projBudgetDays ? parseFloat(projBudgetDays) : null,
       }),
     });
     setShowProjectDialog(false);
     setProjName("");
     setProjClientId("");
     setProjDayRate("");
+    setProjBudgetDays("");
     fetchData();
   };
 
@@ -258,29 +267,49 @@ export default function ManagePage() {
                       <TableHeader>
                         <TableRow>
                           <TableHead className="text-[#000] font-semibold">Project</TableHead>
-                          <TableHead className="text-[#000] font-semibold">Day Rate</TableHead>
+                          <TableHead className="text-center text-[#000] font-semibold">Budget (days)</TableHead>
+                          <TableHead className="text-center text-[#000] font-semibold">Used</TableHead>
+                          <TableHead className="text-center text-[#000] font-semibold">Remaining</TableHead>
                           <TableHead className="w-[80px] text-[#000] font-semibold">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {client.projects.map((proj) => (
-                          <TableRow key={proj.id}>
-                            <TableCell>{proj.name}</TableCell>
-                            <TableCell>
-                              {proj.dayRate ? `€${proj.dayRate}` : "-"}
-                            </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-500"
-                                onClick={() => deleteProject(proj.id)}
-                              >
-                                Delete
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {client.projects.map((proj) => {
+                          const usedDays = Math.round(
+                            allocations
+                              .filter((a) => a.projectId === proj.id)
+                              .reduce((s, a) => s + a.plannedDays, 0)
+                          );
+                          const remaining = proj.budgetDays != null ? Math.round(proj.budgetDays - usedDays) : null;
+                          return (
+                            <TableRow key={proj.id}>
+                              <TableCell>{proj.name}</TableCell>
+                              <TableCell className="text-center">
+                                {proj.budgetDays != null ? `${proj.budgetDays}d` : "-"}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {usedDays > 0 ? `${usedDays}d` : "-"}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {remaining != null ? (
+                                  <span className={remaining < 0 ? "text-red-600 font-semibold" : remaining === 0 ? "text-[#faa61a] font-semibold" : "text-[#006284] font-semibold"}>
+                                    {remaining}d
+                                  </span>
+                                ) : "-"}
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-500"
+                                  onClick={() => deleteProject(proj.id)}
+                                >
+                                  Delete
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   ) : (
@@ -399,6 +428,16 @@ export default function ManagePage() {
                 value={projDayRate}
                 onChange={(e) => setProjDayRate(e.target.value)}
                 placeholder="e.g., 1200"
+              />
+            </div>
+            <div>
+              <Label>Budget (days, optional)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={projBudgetDays}
+                onChange={(e) => setProjBudgetDays(e.target.value)}
+                placeholder="e.g., 60"
               />
             </div>
             <Button onClick={saveProject} className="w-full bg-[#006284] hover:bg-[#004d68] text-white">

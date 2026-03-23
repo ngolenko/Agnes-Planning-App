@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
       clientId: body.clientId,
       fabricProjectId: body.fabricProjectId || null,
       dayRate: body.dayRate || null,
+      budgetDays: body.budgetDays || null,
     },
   });
   return NextResponse.json(project, { status: 201 });

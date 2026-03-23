@@ -1,11 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -14,16 +11,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlanningData, Allocation, Employee } from "@/lib/types";
+import { PlanningData } from "@/lib/types";
 import { getWorkingDaysInMonth, formatMonthYear } from "@/lib/dates";
-import { daysToPercentage } from "@/lib/availability";
 
 export default function DashboardPage() {
   const [data, setData] = useState<PlanningData | null>(null);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth());
   const [loading, setLoading] = useState(true);
-  const [expandedEmployees, setExpandedEmployees] = useState<Set<string>>(new Set());
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
 
   const fetchData = useCallback(async () => {
@@ -60,91 +55,11 @@ export default function DashboardPage() {
   const totalCapacity = data.employees.length * workingDays;
   const totalTimeOff = data.timeOff.length;
   const totalUnbillable = Math.round(data.unbillable.reduce((s, u) => s + u.plannedDays, 0));
-
-  // Per-employee data (computed first so top-level stats can derive from rounded values)
-  const employeeData = data.employees.map((emp) => {
-    const empTimeOff = data.timeOff.filter((t) => t.employeeId === emp.id);
-    const nonWorkingDays = empTimeOff.length;
-    const empUnbillable = data.unbillable.filter((u) => u.employeeId === emp.id);
-    const empUnbillableDays = Math.round(empUnbillable.reduce((s, u) => s + u.plannedDays, 0));
-    const empAllocations = data.allocations.filter((a) => a.employeeId === emp.id);
-    const capacity = workingDays;
-    const available = capacity - nonWorkingDays - empUnbillableDays;
-
-    // Group allocations by client, then by project
-    const clientMap = new Map<string, {
-      clientName: string;
-      clientId: string;
-      totalDays: number;
-      projects: { projectName: string; projectId: string; days: number }[];
-    }>();
-    for (const a of empAllocations) {
-      const clientName = a.project?.client?.name || "Unknown";
-      const clientId = a.project?.client?.id || a.project?.clientId || "unknown";
-      if (!clientMap.has(clientId)) {
-        clientMap.set(clientId, { clientName, clientId, totalDays: 0, projects: [] });
-      }
-      const clientEntry = clientMap.get(clientId)!;
-      const existingProj = clientEntry.projects.find((p) => p.projectId === a.projectId);
-      if (existingProj) {
-        existingProj.days += a.plannedDays;
-      } else {
-        clientEntry.projects.push({
-          projectName: a.project?.name || "Unknown",
-          projectId: a.projectId,
-          days: a.plannedDays,
-        });
-      }
-      clientEntry.totalDays += a.plannedDays;
-    }
-
-    // Round per-project first, then derive client and employee totals from rounded values
-    for (const entry of clientMap.values()) {
-      for (const p of entry.projects) {
-        p.days = Math.round(p.days);
-      }
-      entry.totalDays = entry.projects.reduce((s, p) => s + p.days, 0);
-    }
-
-    // Derive totalPlanned from rounded client totals (consistent with Planning page)
-    const totalPlanned = Array.from(clientMap.values()).reduce((s, e) => s + e.totalDays, 0);
-    const util = available > 0 ? Math.round((totalPlanned / available) * 100) : 0;
-
-    // Time off breakdown by type
-    const timeOffByType: Record<string, number> = {};
-    for (const t of empTimeOff) {
-      timeOffByType[t.type] = (timeOffByType[t.type] || 0) + 1;
-    }
-
-    // Unbillable breakdown by category
-    const unbillableByCategory: Record<string, number> = {};
-    for (const u of empUnbillable) {
-      unbillableByCategory[u.category] = (unbillableByCategory[u.category] || 0) + u.plannedDays;
-    }
-
-    const remaining = available - totalPlanned;
-
-    return {
-      employee: emp,
-      capacity,
-      totalPlanned,
-      nonWorkingDays,
-      unbillable: Math.round(empUnbillableDays),
-      available,
-      utilization: util,
-      clientGroups: Array.from(clientMap.values()).sort((a, b) => b.totalDays - a.totalDays),
-      timeOffByType,
-      unbillableByCategory,
-      remaining,
-    };
-  });
-
-  // Derive top-level stats from rounded per-employee values (consistent with Planning page)
-  const totalBillable = employeeData.reduce((s, e) => s + e.totalPlanned, 0);
+  const totalBillable = Math.round(data.allocations.reduce((s, a) => s + a.plannedDays, 0));
   const billableCapacity = totalCapacity - totalTimeOff - totalUnbillable;
   const utilization = billableCapacity > 0 ? Math.round((totalBillable / billableCapacity) * 100) : 0;
 
-  // Per-client data
+  // Per-client data with percentage breakdown
   const clientData = (data.clients || []).map((client) => {
     const clientProjectIds = new Set(client.projects?.map((p) => p.id) || []);
     const clientAllocs = data.allocations.filter((a) => clientProjectIds.has(a.projectId));
@@ -166,9 +81,18 @@ export default function DashboardPage() {
       entry.employees.add(a.employeeId);
     }
 
+    // Budget from allAllocations (all-time)
+    const allTimeAllocs = (data.allAllocations || []).filter((a) => clientProjectIds.has(a.projectId));
+
     const projects = Array.from(projectMap.values())
       .sort((a, b) => b.days - a.days)
-      .map((p) => ({ ...p, days: Math.round(p.days), employeeCount: p.employees.size }));
+      .map((p) => {
+        const proj = data.projects.find((pr) => pr.id === p.projectId);
+        const allTimeDays = Math.round(allTimeAllocs.filter((a) => a.projectId === p.projectId).reduce((s, a) => s + a.plannedDays, 0));
+        const budgetDays = proj?.budgetDays ?? null;
+        const remaining = budgetDays != null ? Math.round(budgetDays - allTimeDays) : null;
+        return { ...p, days: Math.round(p.days), employeeCount: p.employees.size, budgetDays, usedDays: allTimeDays, remaining };
+      });
 
     return {
       client,
@@ -178,14 +102,7 @@ export default function DashboardPage() {
     };
   }).filter((c) => c.projectCount > 0 || c.totalPlanned > 0);
 
-  function toggleExpanded(empId: string) {
-    setExpandedEmployees((prev) => {
-      const next = new Set(prev);
-      if (next.has(empId)) next.delete(empId);
-      else next.add(empId);
-      return next;
-    });
-  }
+  const grandTotalPlanned = clientData.reduce((s, c) => s + c.totalPlanned, 0);
 
   function toggleExpandedClient(clientId: string) {
     setExpandedClients((prev) => {
@@ -195,53 +112,6 @@ export default function DashboardPage() {
       return next;
     });
   }
-
-  // Save allocation (same pattern as planning grid)
-  async function saveAllocation(employeeId: string, projectId: string, days: number) {
-    const mondays: Date[] = [];
-    const d = new Date(Date.UTC(year, month, 1));
-    while (d.getUTCDay() !== 1) d.setUTCDate(d.getUTCDate() + 1);
-    while (d.getUTCMonth() === month) {
-      mondays.push(new Date(d));
-      d.setUTCDate(d.getUTCDate() + 7);
-    }
-
-    // Delete existing
-    const existing = data!.allocations.filter(
-      (a) => a.employeeId === employeeId && a.projectId === projectId
-    );
-    for (const a of existing) {
-      await fetch(`/api/allocations/${a.id}`, { method: "DELETE" });
-    }
-
-    // Create new distributed allocations
-    if (days > 0 && mondays.length > 0) {
-      const daysPerWeek = days / mondays.length;
-      for (const monday of mondays) {
-        await fetch("/api/allocations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            employeeId,
-            projectId,
-            weekStartDate: monday.toISOString(),
-            plannedDays: Math.round(daysPerWeek * 2) / 2,
-          }),
-        });
-      }
-    }
-
-    fetchData();
-  }
-
-  const timeOffLabel = (type: string) => {
-    switch (type) {
-      case "vacation": return "vacation";
-      case "sick": return "sick";
-      case "public_holiday": return "holiday";
-      default: return type;
-    }
-  };
 
   return (
     <div className="p-6 space-y-6">
@@ -297,176 +167,9 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Employee Utilization Table */}
-      <Card className="border-[#e2e4e7] shadow-sm overflow-hidden">
-        <div className="bg-[#006284] text-white py-3 px-5">
-          <h3 className="text-base font-semibold text-white" style={{ fontFamily: "var(--font-poppins)" }}>
-            Employee Utilization &mdash; {formatMonthYear(year, month)}
-          </h3>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow className="border-b-[#e2e4e7] bg-[#f5f6f7]">
-              <TableHead className="font-semibold text-[#000] w-[250px]">Employee</TableHead>
-              <TableHead className="text-center font-semibold text-[#000]">Capacity</TableHead>
-              <TableHead className="text-center font-semibold text-[#000]">Planned</TableHead>
-              <TableHead className="text-center font-semibold text-[#000]">Non-Working</TableHead>
-              <TableHead className="text-center font-semibold text-[#000]">Utilization</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {employeeData.map((ed, idx) => {
-              const isExpanded = expandedEmployees.has(ed.employee.id);
-              return (
-                <React.Fragment key={ed.employee.id}>
-                  {/* Employee summary row */}
-                  <TableRow
-                    className={`border-b-[#e2e4e7] cursor-pointer transition-colors ${
-                      isExpanded ? "bg-[#e8f7fa]" : idx % 2 === 0 ? "bg-white" : "bg-[#fafbfc]"
-                    } hover:bg-[#e8f7fa]/60`}
-                    onClick={() => toggleExpanded(ed.employee.id)}
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <svg className={`w-4 h-4 text-[#006284] transition-transform ${isExpanded ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                        <div className="flex items-center gap-2">
-                          <div>
-                            <div className="font-semibold text-[#000]">{ed.employee.name}</div>
-                            <div className="text-xs text-[#747577]">{ed.employee.role}</div>
-                          </div>
-                          <Link
-                            href={`/dashboard/employee/${ed.employee.id}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-[#747577] hover:text-[#006284] transition-colors ml-1"
-                            title="View employee page"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                          </Link>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center text-[#747577]">{ed.capacity}d</TableCell>
-                    <TableCell className="text-center">
-                      <span className={`font-semibold ${ed.totalPlanned > ed.available ? "text-red-600" : "text-[#006284]"}`}>
-                        {ed.totalPlanned}d
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {ed.nonWorkingDays > 0 ? (
-                        <Badge className="bg-[#faa61a]/10 text-[#faa61a] border-0">{ed.nonWorkingDays}d</Badge>
-                      ) : (
-                        <span className="text-[#e2e4e7]">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex flex-col items-center gap-1">
-                        <Badge className={`border-0 ${
-                          ed.utilization > 100 ? "bg-red-50 text-red-600" :
-                          ed.utilization >= 80 ? "bg-[#006284]/10 text-[#006284]" :
-                          "bg-[#faa61a]/10 text-[#faa61a]"
-                        }`}>
-                          {ed.utilization}%
-                        </Badge>
-                        {/* Utilization bar */}
-                        <div className="w-16 h-1 bg-[#e2e4e7] rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${Math.min(ed.utilization, 100)}%`,
-                              backgroundColor: ed.utilization > 100 ? "#dc2626" : "#006284",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-
-                  {/* Expanded: client-grouped project rows */}
-                  {isExpanded && ed.clientGroups.length > 0 && ed.clientGroups.map((cg) => (
-                    <React.Fragment key={`${ed.employee.id}-client-${cg.clientId}`}>
-                      {/* Client subtotal row */}
-                      <TableRow className="bg-[#f5f6f7] border-b-[#e2e4e7]">
-                        <TableCell className="pl-10" colSpan={2}>
-                          <div className="flex items-center gap-2 text-sm font-semibold text-[#004d68]">
-                            <span>{cg.clientName}</span>
-                            <span className="text-[#747577] font-normal">
-                              &mdash; {daysToPercentage(Math.round(cg.totalDays), ed.available)}% ({Math.round(cg.totalDays)}d)
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell />
-                        <TableCell />
-                        <TableCell />
-                      </TableRow>
-                      {/* Project rows under this client */}
-                      {cg.projects.sort((a, b) => b.days - a.days).map((proj) => (
-                        <ProjectAllocationRow
-                          key={`${ed.employee.id}-${proj.projectId}`}
-                          employeeId={ed.employee.id}
-                          projectId={proj.projectId}
-                          projectName={proj.projectName}
-                          clientName={cg.clientName}
-                          days={Math.round(proj.days)}
-                          onSave={saveAllocation}
-                          showClientName={false}
-                        />
-                      ))}
-                    </React.Fragment>
-                  ))}
-
-                  {/* Non-working / Unbillable / Remaining summary */}
-                  {isExpanded && (
-                    <TableRow className="bg-[#fafbfc] border-b-[#e2e4e7]">
-                      <TableCell colSpan={5} className="pl-10 py-2">
-                        <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-[#747577]">
-                          {Object.keys(ed.timeOffByType).length > 0 && (
-                            <span>
-                              <span className="font-medium text-[#faa61a]">Non-working:</span>{" "}
-                              {Object.entries(ed.timeOffByType)
-                                .map(([type, count]) => `${Math.round(count)}d ${timeOffLabel(type)}`)
-                                .join(", ")}
-                            </span>
-                          )}
-                          {Object.keys(ed.unbillableByCategory).length > 0 && (
-                            <span>
-                              <span className="font-medium text-[#87d3df]">Unbillable:</span>{" "}
-                              {Object.entries(ed.unbillableByCategory)
-                                .map(([cat, days]) => `${Math.round(days)}d ${cat}`)
-                                .join(", ")}
-                            </span>
-                          )}
-                          <span>
-                            <span className={`font-medium ${ed.remaining < 0 ? "text-red-600" : "text-[#006284]"}`}>
-                              Remaining:
-                            </span>{" "}
-                            {ed.remaining}d
-                          </span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-
-                  {isExpanded && ed.clientGroups.length === 0 && (
-                    <TableRow key={`${ed.employee.id}-empty`} className="bg-[#fafbfc]">
-                      <TableCell colSpan={5} className="text-center py-3 text-[#747577] text-xs">
-                        No project allocations this month
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Card>
-
       {/* Client Overview Table */}
       <Card className="border-[#e2e4e7] shadow-sm overflow-hidden">
-        <div className="bg-[#004d68] text-white py-3 px-5">
+        <div className="bg-[#006284] text-white py-3 px-5">
           <h3 className="text-base font-semibold text-white" style={{ fontFamily: "var(--font-poppins)" }}>
             Client Overview &mdash; {formatMonthYear(year, month)}
           </h3>
@@ -475,15 +178,14 @@ export default function DashboardPage() {
           <TableHeader>
             <TableRow className="border-b-[#e2e4e7] bg-[#f5f6f7]">
               <TableHead className="font-semibold text-[#000] w-[250px]">Client</TableHead>
-              <TableHead className="text-center font-semibold text-[#000]">Projects</TableHead>
               <TableHead className="text-center font-semibold text-[#000]">Planned Days</TableHead>
-              <TableHead className="text-center font-semibold text-[#000]">Budget (Fabric)</TableHead>
-              <TableHead className="text-center font-semibold text-[#000]">Remaining</TableHead>
+              <TableHead className="text-center font-semibold text-[#000]">% of Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {clientData.map((cd, idx) => {
               const isExpanded = expandedClients.has(cd.client.id);
+              const pctOfTotal = grandTotalPlanned > 0 ? Math.round((cd.totalPlanned / grandTotalPlanned) * 100) : 0;
               return (
                 <React.Fragment key={cd.client.id}>
                   <TableRow
@@ -498,14 +200,23 @@ export default function DashboardPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                         <span className="font-semibold text-[#000]">{cd.client.name}</span>
+                        <span className="text-xs text-[#747577]">({cd.projectCount} projects)</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-center text-[#747577]">{cd.projectCount}</TableCell>
                     <TableCell className="text-center">
                       <span className="font-semibold text-[#006284]">{cd.totalPlanned}d</span>
                     </TableCell>
-                    <TableCell className="text-center"><span className="text-[#87d3df] text-xs italic">Fabric</span></TableCell>
-                    <TableCell className="text-center"><span className="text-[#87d3df] text-xs italic">Fabric</span></TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="font-medium text-[#000]">{pctOfTotal}%</span>
+                        <div className="w-16 h-1.5 bg-[#e2e4e7] rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-[#006284] transition-all"
+                            style={{ width: `${pctOfTotal}%` }}
+                          />
+                        </div>
+                      </div>
+                    </TableCell>
                   </TableRow>
 
                   {isExpanded && cd.projects.map((proj) => (
@@ -517,17 +228,27 @@ export default function DashboardPage() {
                           <span className="text-[#747577] text-xs">{proj.employeeCount} people</span>
                         </div>
                       </TableCell>
-                      <TableCell />
                       <TableCell className="text-center">
                         <span className="font-medium text-[#006284]">{proj.days}d</span>
                       </TableCell>
-                      <TableCell className="text-center"><span className="text-[#87d3df] text-xs italic">Fabric</span></TableCell>
-                      <TableCell className="text-center"><span className="text-[#87d3df] text-xs italic">Fabric</span></TableCell>
+                      <TableCell className="text-center">
+                        {proj.budgetDays != null ? (
+                          <span className={`text-xs ${
+                            proj.remaining != null && proj.remaining < 0 ? "text-red-600 font-semibold" :
+                            proj.remaining != null && proj.budgetDays && proj.remaining < proj.budgetDays * 0.2 ? "text-[#faa61a]" :
+                            "text-[#747577]"
+                          }`}>
+                            {proj.remaining}d / {proj.budgetDays}d budget
+                          </span>
+                        ) : (
+                          <span className="text-[#e2e4e7] text-xs">-</span>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                   {isExpanded && cd.projects.length === 0 && (
                     <TableRow key={`${cd.client.id}-empty`} className="bg-[#fafbfc]">
-                      <TableCell colSpan={5} className="text-center py-3 text-[#747577] text-xs">
+                      <TableCell colSpan={3} className="text-center py-3 text-[#747577] text-xs">
                         No project allocations this month
                       </TableCell>
                     </TableRow>
@@ -537,7 +258,7 @@ export default function DashboardPage() {
             })}
             {clientData.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-[#747577]">
+                <TableCell colSpan={3} className="text-center py-8 text-[#747577]">
                   No client allocations this month
                 </TableCell>
               </TableRow>
@@ -546,89 +267,5 @@ export default function DashboardPage() {
         </Table>
       </Card>
     </div>
-  );
-}
-
-// Inline-editable project allocation row
-function ProjectAllocationRow({
-  employeeId,
-  projectId,
-  projectName,
-  clientName,
-  days,
-  onSave,
-  showClientName = true,
-}: {
-  employeeId: string;
-  projectId: string;
-  projectName: string;
-  clientName: string;
-  days: number;
-  onSave: (empId: string, projId: string, days: number) => Promise<void>;
-  showClientName?: boolean;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [editValue, setEditValue] = useState(days.toString());
-  const [saving, setSaving] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => { setEditValue(days.toString()); }, [days]);
-  useEffect(() => {
-    if (editing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [editing]);
-
-  const handleSave = async () => {
-    const newDays = parseFloat(editValue) || 0;
-    if (newDays !== days) {
-      setSaving(true);
-      await onSave(employeeId, projectId, newDays);
-      setSaving(false);
-    }
-    setEditing(false);
-  };
-
-  return (
-    <TableRow className={`bg-[#f5f6f7]/50 border-b-[#e2e4e7] ${saving ? "opacity-50" : ""}`}>
-      <TableCell className="pl-16">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-[#87d3df]">&bull;</span>
-          <div>
-            <span className="text-[#000]">{projectName}</span>
-            {showClientName && <span className="text-[#747577] text-xs ml-2">{clientName}</span>}
-          </div>
-        </div>
-      </TableCell>
-      <TableCell />
-      <TableCell className="text-center">
-        {editing ? (
-          <Input
-            ref={inputRef}
-            type="number"
-            min={0}
-            step={0.5}
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={handleSave}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSave();
-              if (e.key === "Escape") { setEditing(false); setEditValue(days.toString()); }
-            }}
-            className="w-20 mx-auto text-center border-[#87d3df] ring-1 ring-[#87d3df]"
-          />
-        ) : (
-          <button
-            onClick={(e) => { e.stopPropagation(); setEditing(true); }}
-            className="font-medium text-[#006284] px-3 py-1 rounded hover:bg-[#e8f7fa] transition-colors"
-          >
-            {days}d
-          </button>
-        )}
-      </TableCell>
-      <TableCell />
-      <TableCell />
-    </TableRow>
   );
 }

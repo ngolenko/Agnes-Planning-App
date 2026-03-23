@@ -142,11 +142,12 @@ export default function TimeOffPage() {
 
   const handleSaveUnbillable = async () => {
     if (!selectedEmployeeId) return;
+    // Use first Monday ON OR AFTER the 1st so weekStartDate falls within the month
     const firstOfMonth = new Date(Date.UTC(year, month, 1));
     const weekStart = new Date(firstOfMonth);
     const dow = weekStart.getUTCDay();
     if (dow !== 1) {
-      weekStart.setUTCDate(weekStart.getUTCDate() - (dow === 0 ? 6 : dow - 1));
+      weekStart.setUTCDate(weekStart.getUTCDate() + (dow === 0 ? 1 : 8 - dow));
     }
 
     await fetch("/api/unbillable", {

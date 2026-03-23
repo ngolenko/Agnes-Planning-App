@@ -38,7 +38,7 @@ export function PlanningGrid() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth());
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"client" | "resource">("client");
+  const [viewMode, setViewMode] = useState<"client" | "resource" | "project">("client");
 
   // Percentage overrides: stores user-entered percentages keyed by "empId::clientId"
   // This is the source of truth for display — percentages are never back-calculated from days
@@ -53,6 +53,10 @@ export function PlanningGrid() {
   const [addingClientTo, setAddingClientTo] = useState<string | null>(null);
   const [newClientId, setNewClientId] = useState("");
   const [newClientPercent, setNewClientPercent] = useState("");
+
+  // Project view state
+  const [expandedPVClients, setExpandedPVClients] = useState<Set<string>>(new Set());
+  const [expandedPVProjects, setExpandedPVProjects] = useState<Set<string>>(new Set());
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -357,6 +361,17 @@ export function PlanningGrid() {
               style={{ fontFamily: "var(--font-poppins)" }}
             >
               Resource View
+            </button>
+            <button
+              onClick={() => setViewMode("project")}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors border-l border-[#e2e4e7] ${
+                viewMode === "project"
+                  ? "bg-[#006284] text-white"
+                  : "bg-white text-[#747577] hover:bg-[#e8f7fa] hover:text-[#006284]"
+              }`}
+              style={{ fontFamily: "var(--font-poppins)" }}
+            >
+              Project View
             </button>
           </div>
 
@@ -797,6 +812,196 @@ export function PlanningGrid() {
           </CardContent>
         </Card>
       )}
+
+      {/* ════════════════════════════════════════════════════════════
+          PROJECT VIEW — Budget & Allocation by Project
+         ════════════════════════════════════════════════════════════ */}
+      {viewMode === "project" && (() => {
+        const togglePVClient = (id: string) => {
+          setExpandedPVClients((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+          });
+        };
+        const togglePVProject = (id: string) => {
+          setExpandedPVProjects((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+          });
+        };
+
+        const projectViewData = clientsWithProjects.map((client) => {
+          const projects = (client.projects || []).map((project) => {
+            // Current month allocations by employee
+            const currentAllocs = data.allocations.filter((a) => a.projectId === project.id);
+            const empMap = new Map<string, number>();
+            for (const a of currentAllocs) {
+              empMap.set(a.employeeId, (empMap.get(a.employeeId) || 0) + a.plannedDays);
+            }
+            const employees = Array.from(empMap.entries())
+              .map(([empId, days]) => ({
+                employee: data.employees.find((e) => e.id === empId),
+                days: Math.round(days),
+              }))
+              .filter((e) => e.employee && e.days > 0)
+              .sort((a, b) => b.days - a.days);
+
+            const daysThisMonth = Math.round(currentAllocs.reduce((s, a) => s + a.plannedDays, 0));
+
+            // Previous month
+            const prevAllocs = data.prevAllocations.filter((a) => a.projectId === project.id);
+            const daysLastMonth = Math.round(prevAllocs.reduce((s, a) => s + a.plannedDays, 0));
+
+            // All-time for budget
+            const allTimeAllocs = (data.allAllocations || []).filter((a) => a.projectId === project.id);
+            const usedDays = Math.round(allTimeAllocs.reduce((s, a) => s + a.plannedDays, 0));
+            const budgetDays = project.budgetDays;
+            const remainingDays = budgetDays != null ? Math.round(budgetDays - usedDays) : null;
+
+            return { project, daysThisMonth, daysLastMonth, usedDays, budgetDays, remainingDays, employees };
+          });
+
+          const clientDaysThisMonth = projects.reduce((s, p) => s + p.daysThisMonth, 0);
+          return { client, projects, clientDaysThisMonth };
+        });
+
+        return (
+          <Card className="border-[#e2e4e7] shadow-sm overflow-hidden">
+            <CardHeader className="bg-[#006284] text-white py-3 px-5">
+              <CardTitle className="text-base text-white" style={{ fontFamily: "var(--font-poppins)" }}>
+                Project Allocation &mdash; {formatMonthYear(year, month)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b-[#e2e4e7] bg-[#f5f6f7]">
+                    <TableHead className="font-semibold text-[#000] w-[280px]">Client / Project / Person</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000] w-[90px]">Budget</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000] w-[90px]">Used</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000] w-[90px]">Remaining</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000] w-[100px]">This Month</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000] w-[100px]">Last Month</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projectViewData.map((clientNode) => {
+                    const clientExpanded = expandedPVClients.has(clientNode.client.id);
+                    return (
+                      <React.Fragment key={clientNode.client.id}>
+                        {/* CLIENT ROW */}
+                        <TableRow
+                          className="border-b-[#e2e4e7] cursor-pointer transition-colors hover:bg-[#e8f7fa]/60"
+                          style={{ borderLeft: "3px solid #006284", backgroundColor: clientExpanded ? "rgba(0,98,132,0.05)" : "white" }}
+                          onClick={() => togglePVClient(clientNode.client.id)}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <svg className={`w-4 h-4 text-[#006284] transition-transform ${clientExpanded ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                              </svg>
+                              <span className="font-bold text-[#000]" style={{ fontFamily: "var(--font-poppins)" }}>{clientNode.client.name}</span>
+                              <span className="text-xs text-[#747577]">({clientNode.client.projects?.length || 0} projects)</span>
+                            </div>
+                          </TableCell>
+                          <TableCell />
+                          <TableCell />
+                          <TableCell />
+                          <TableCell className="text-center font-bold text-[#006284]">{clientNode.clientDaysThisMonth}d</TableCell>
+                          <TableCell />
+                        </TableRow>
+
+                        {/* PROJECT ROWS */}
+                        {clientExpanded && clientNode.projects.map((projNode) => {
+                          const projExpanded = expandedPVProjects.has(projNode.project.id);
+                          return (
+                            <React.Fragment key={projNode.project.id}>
+                              <TableRow
+                                className={`border-b-[#e2e4e7] cursor-pointer transition-colors hover:bg-[#e8f7fa]/60 ${projExpanded ? "bg-[#fafbfc]" : "bg-white"}`}
+                                onClick={() => togglePVProject(projNode.project.id)}
+                              >
+                                <TableCell className="pl-10">
+                                  <div className="flex items-center gap-2">
+                                    <svg className={`w-3.5 h-3.5 text-[#006284] transition-transform ${projExpanded ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                    <span className="font-semibold text-[#000]">{projNode.project.name}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  {projNode.budgetDays != null ? (
+                                    <span className="font-medium text-[#000]">{projNode.budgetDays}d</span>
+                                  ) : <span className="text-[#e2e4e7]">-</span>}
+                                </TableCell>
+                                <TableCell className="text-center font-medium text-[#000]">
+                                  {projNode.usedDays > 0 ? `${projNode.usedDays}d` : <span className="text-[#e2e4e7]">-</span>}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  {projNode.remainingDays != null ? (
+                                    <span className={`font-semibold ${
+                                      projNode.remainingDays < 0 ? "text-red-600"
+                                      : projNode.budgetDays && projNode.remainingDays < projNode.budgetDays * 0.2 ? "text-[#faa61a]"
+                                      : "text-[#006284]"
+                                    }`}>
+                                      {projNode.remainingDays}d
+                                    </span>
+                                  ) : <span className="text-[#e2e4e7]">-</span>}
+                                </TableCell>
+                                <TableCell className="text-center font-semibold text-[#006284]">
+                                  {projNode.daysThisMonth > 0 ? `${projNode.daysThisMonth}d` : <span className="text-[#e2e4e7]">-</span>}
+                                </TableCell>
+                                <TableCell className="text-center text-[#747577]">
+                                  {projNode.daysLastMonth > 0 ? `${projNode.daysLastMonth}d` : <span className="text-[#e2e4e7]">-</span>}
+                                </TableCell>
+                              </TableRow>
+
+                              {/* EMPLOYEE ROWS under project */}
+                              {projExpanded && projNode.employees.map((empEntry) => (
+                                <TableRow key={`${projNode.project.id}-${empEntry.employee!.id}`} className="border-b-[#e2e4e7] bg-[#f5f6f7]/50">
+                                  <TableCell className="pl-20">
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <span className="text-[#87d3df]">&bull;</span>
+                                      <span className="text-[#000]">{empEntry.employee!.name}</span>
+                                      <span className="text-[10px] text-[#747577]">({empEntry.employee!.role})</span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell />
+                                  <TableCell />
+                                  <TableCell />
+                                  <TableCell className="text-center text-sm text-[#000]">{empEntry.days}d</TableCell>
+                                  <TableCell />
+                                </TableRow>
+                              ))}
+
+                              {projExpanded && projNode.employees.length === 0 && (
+                                <TableRow className="border-b-[#e2e4e7] bg-[#f5f6f7]/30">
+                                  <TableCell colSpan={6} className="text-center py-2 text-[#747577] text-xs pl-20">
+                                    No allocations this month.
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </React.Fragment>
+                    );
+                  })}
+
+                  {projectViewData.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-[#747577]">
+                        No active projects. Add them in Manage.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        );
+      })()}
     </div>
   );
 }

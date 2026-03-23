@@ -19,6 +19,7 @@ export interface Project {
   clientId: string;
   fabricProjectId: string | null;
   dayRate: number | null;
+  budgetDays: number | null;
   isActive: boolean;
   client?: Client;
 }
@@ -57,5 +58,6 @@ export interface PlanningData {
   unbillable: UnbillableTime[];
   projects: (Project & { client: Client })[];
   clients: (Client & { projects: Project[] })[];
+  allAllocations: Allocation[];
   period: { year: number; month: number };
 }
