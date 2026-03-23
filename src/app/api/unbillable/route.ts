@@ -9,17 +9,24 @@ export async function GET(request: NextRequest) {
 
   const where: Record<string, unknown> = {};
   if (employeeId) where.employeeId = employeeId;
-  if (startDate || endDate) {
-    where.weekStartDate = {};
-    if (startDate) (where.weekStartDate as Record<string, unknown>).gte = new Date(startDate);
-    if (endDate) (where.weekStartDate as Record<string, unknown>).lte = new Date(endDate);
-  }
 
-  const unbillable = await prisma.unbillableTime.findMany({
+  // Fetch all matching records and filter dates client-side for reliability
+  // with SQLite date handling (Prisma gte/lte can miss records)
+  let unbillable = await prisma.unbillableTime.findMany({
     where,
     include: { employee: true },
     orderBy: { weekStartDate: "asc" },
   });
+
+  if (startDate || endDate) {
+    const start = startDate ? new Date(startDate).getTime() : -Infinity;
+    const end = endDate ? new Date(endDate).getTime() : Infinity;
+    unbillable = unbillable.filter((u) => {
+      const d = new Date(u.weekStartDate).getTime();
+      return d >= start && d <= end;
+    });
+  }
+
   return NextResponse.json(unbillable);
 }
 

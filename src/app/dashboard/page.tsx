@@ -60,21 +60,16 @@ export default function DashboardPage() {
   const totalCapacity = data.employees.length * workingDays;
   const totalTimeOff = data.timeOff.length;
   const totalUnbillable = Math.round(data.unbillable.reduce((s, u) => s + u.plannedDays, 0));
-  const totalBillable = Math.round(data.allocations.reduce((s, a) => s + a.plannedDays, 0));
-  const billableCapacity = totalCapacity - totalTimeOff - totalUnbillable;
-  const utilization = billableCapacity > 0 ? Math.round((totalBillable / billableCapacity) * 100) : 0;
 
-  // Per-employee data
+  // Per-employee data (computed first so top-level stats can derive from rounded values)
   const employeeData = data.employees.map((emp) => {
     const empTimeOff = data.timeOff.filter((t) => t.employeeId === emp.id);
     const nonWorkingDays = empTimeOff.length;
     const empUnbillable = data.unbillable.filter((u) => u.employeeId === emp.id);
     const empUnbillableDays = Math.round(empUnbillable.reduce((s, u) => s + u.plannedDays, 0));
     const empAllocations = data.allocations.filter((a) => a.employeeId === emp.id);
-    const totalPlanned = Math.round(empAllocations.reduce((s, a) => s + a.plannedDays, 0));
     const capacity = workingDays;
     const available = capacity - nonWorkingDays - empUnbillableDays;
-    const util = available > 0 ? Math.round((totalPlanned / available) * 100) : 0;
 
     // Group allocations by client, then by project
     const clientMap = new Map<string, {
@@ -103,6 +98,18 @@ export default function DashboardPage() {
       clientEntry.totalDays += a.plannedDays;
     }
 
+    // Round per-project first, then derive client and employee totals from rounded values
+    for (const entry of clientMap.values()) {
+      for (const p of entry.projects) {
+        p.days = Math.round(p.days);
+      }
+      entry.totalDays = entry.projects.reduce((s, p) => s + p.days, 0);
+    }
+
+    // Derive totalPlanned from rounded client totals (consistent with Planning page)
+    const totalPlanned = Array.from(clientMap.values()).reduce((s, e) => s + e.totalDays, 0);
+    const util = available > 0 ? Math.round((totalPlanned / available) * 100) : 0;
+
     // Time off breakdown by type
     const timeOffByType: Record<string, number> = {};
     for (const t of empTimeOff) {
@@ -115,20 +122,12 @@ export default function DashboardPage() {
       unbillableByCategory[u.category] = (unbillableByCategory[u.category] || 0) + u.plannedDays;
     }
 
-    const remaining = Math.round(available - totalPlanned);
-
-    // Round all day values in client groups
-    for (const entry of clientMap.values()) {
-      entry.totalDays = Math.round(entry.totalDays);
-      for (const p of entry.projects) {
-        p.days = Math.round(p.days);
-      }
-    }
+    const remaining = available - totalPlanned;
 
     return {
       employee: emp,
       capacity,
-      totalPlanned: Math.round(totalPlanned),
+      totalPlanned,
       nonWorkingDays,
       unbillable: Math.round(empUnbillableDays),
       available,
@@ -139,6 +138,11 @@ export default function DashboardPage() {
       remaining,
     };
   });
+
+  // Derive top-level stats from rounded per-employee values (consistent with Planning page)
+  const totalBillable = employeeData.reduce((s, e) => s + e.totalPlanned, 0);
+  const billableCapacity = totalCapacity - totalTimeOff - totalUnbillable;
+  const utilization = billableCapacity > 0 ? Math.round((totalBillable / billableCapacity) * 100) : 0;
 
   // Per-client data
   const clientData = (data.clients || []).map((client) => {

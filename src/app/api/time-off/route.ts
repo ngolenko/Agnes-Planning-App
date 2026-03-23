@@ -9,17 +9,24 @@ export async function GET(request: NextRequest) {
 
   const where: Record<string, unknown> = {};
   if (employeeId) where.employeeId = employeeId;
-  if (startDate || endDate) {
-    where.date = {};
-    if (startDate) (where.date as Record<string, unknown>).gte = new Date(startDate);
-    if (endDate) (where.date as Record<string, unknown>).lte = new Date(endDate);
-  }
 
-  const timeOff = await prisma.timeOff.findMany({
+  // Fetch all matching records and filter dates client-side for reliability
+  // with SQLite date handling (Prisma gte/lte can miss records)
+  let timeOff = await prisma.timeOff.findMany({
     where,
     include: { employee: true },
     orderBy: { date: "asc" },
   });
+
+  if (startDate || endDate) {
+    const start = startDate ? new Date(startDate).getTime() : -Infinity;
+    const end = endDate ? new Date(endDate).getTime() : Infinity;
+    timeOff = timeOff.filter((t) => {
+      const d = new Date(t.date).getTime();
+      return d >= start && d <= end;
+    });
+  }
+
   return NextResponse.json(timeOff);
 }
 

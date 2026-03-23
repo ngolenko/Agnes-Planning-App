@@ -243,7 +243,7 @@ export default function TimeOffPage() {
             </TableHeader>
             <TableBody>
               {summaries.map((s, idx) => {
-                const availableDays = workingDays - s.vacation - s.sick;
+                const availableDays = workingDays - s.totalOff;
                 const isSelected = s.employee.id === selectedEmployeeId;
                 return (
                   <TableRow

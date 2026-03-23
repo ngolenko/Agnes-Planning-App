@@ -118,7 +118,7 @@ export function PlanningGrid() {
       let remaining = days;
       for (let i = 0; i < mondays.length; i++) {
         const weeksLeft = mondays.length - i;
-        const thisWeek = Math.round(remaining / weeksLeft);
+        const thisWeek = Math.floor(remaining / weeksLeft);
         remaining -= thisWeek;
         await fetch("/api/allocations", {
           method: "POST",
@@ -177,8 +177,9 @@ export function PlanningGrid() {
           : daysToPercentage(days, availDays);
         return { client, days, percent };
       });
-      const totalPercent = clientAllocs.reduce((s, c) => s + c.percent, 0);
+      // Compute totals from sum of per-client days (already rounded) to stay consistent
       const totalDays = clientAllocs.reduce((s, c) => s + c.days, 0);
+      const totalPercent = daysToPercentage(totalDays, availDays);
       return { employee: emp, availDays, timeOffDays, unbillableDays, clientAllocs, totalPercent, totalDays };
     });
 
@@ -222,7 +223,7 @@ export function PlanningGrid() {
 
     if (oldTotal === 0) {
       // No existing allocations — distribute evenly
-      const perProject = Math.round(newTotalDays / projects.length);
+      const perProject = Math.floor(newTotalDays / projects.length);
       let remaining = newTotalDays;
       for (let i = 0; i < projects.length; i++) {
         const days = i === projects.length - 1 ? remaining : perProject;
@@ -252,9 +253,6 @@ export function PlanningGrid() {
     .map((emp) => {
       const empAllocs = data.allocations.filter((a) => a.employeeId === emp.id);
       const availDays = getEmployeeAvail(emp.id);
-      const allocatedDays = Math.round(empAllocs.reduce((s, a) => s + a.plannedDays, 0));
-      const remainingDays = availDays - allocatedDays;
-      const allocPercent = daysToPercentage(allocatedDays, availDays);
 
       const clientMap = new Map<string, { client: Client; projects: { project: Project; days: number }[]; totalDays: number }>();
 
@@ -276,11 +274,16 @@ export function PlanningGrid() {
       }
 
       for (const entry of clientMap.values()) {
-        entry.totalDays = Math.round(entry.totalDays);
         for (const p of entry.projects) {
           p.days = Math.round(p.days);
         }
+        entry.totalDays = entry.projects.reduce((s, p) => s + p.days, 0);
       }
+
+      // Derive allocatedDays from rounded client totals so it matches the breakdown
+      const allocatedDays = Array.from(clientMap.values()).reduce((s, e) => s + e.totalDays, 0);
+      const remainingDays = availDays - allocatedDays;
+      const allocPercent = daysToPercentage(allocatedDays, availDays);
 
       return {
         employee: emp,
