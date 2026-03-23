@@ -263,14 +263,14 @@ export default function ManagePage() {
                     </Button>
                   </div>
                   {client.projects && client.projects.length > 0 ? (
-                    <Table>
+                    <Table className="table-fixed">
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-[#000] font-semibold">Project</TableHead>
-                          <TableHead className="text-center text-[#000] font-semibold">Budget (days)</TableHead>
-                          <TableHead className="text-center text-[#000] font-semibold">Used</TableHead>
-                          <TableHead className="text-center text-[#000] font-semibold">Remaining</TableHead>
-                          <TableHead className="w-[80px] text-[#000] font-semibold">Actions</TableHead>
+                          <TableHead className="text-[#000] font-semibold w-[40%]">Project</TableHead>
+                          <TableHead className="text-center text-[#000] font-semibold w-[15%]">Budget (days)</TableHead>
+                          <TableHead className="text-center text-[#000] font-semibold w-[15%]">Used</TableHead>
+                          <TableHead className="text-center text-[#000] font-semibold w-[15%]">Remaining</TableHead>
+                          <TableHead className="text-right text-[#000] font-semibold w-[15%]">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -297,7 +297,7 @@ export default function ManagePage() {
                                   </span>
                                 ) : "-"}
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="text-right">
                                 <Button
                                   variant="ghost"
                                   size="sm"
