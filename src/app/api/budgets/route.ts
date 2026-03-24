@@ -2,23 +2,22 @@ import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
-  const projects = await prisma.project.findMany({
-    include: { client: true, budget: true },
+  const budgets = await prisma.budget.findMany({
+    include: { client: true, projects: true },
     orderBy: { name: "asc" },
   });
-  return NextResponse.json(projects);
+  return NextResponse.json(budgets);
 }
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const project = await prisma.project.create({
+  const budget = await prisma.budget.create({
     data: {
       name: body.name,
       clientId: body.clientId,
-      budgetId: body.budgetId || null,
-      fabricProjectId: body.fabricProjectId || null,
       budgetDays: body.budgetDays || null,
+      fabricBudgetId: body.fabricBudgetId || null,
     },
   });
-  return NextResponse.json(project, { status: 201 });
+  return NextResponse.json(budget, { status: 201 });
 }

@@ -1,3 +1,6 @@
+import { getPublicHolidaysInMonth } from "./holidays";
+import { CountryCode } from "./types";
+
 export function getWeekStartDate(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay();
@@ -26,13 +29,17 @@ export function getMonthWeeks(year: number, month: number): Date[] {
   return weeks;
 }
 
-export function getWorkingDaysInMonth(year: number, month: number): number {
+export function getWorkingDaysInMonth(year: number, month: number, country?: CountryCode): number {
   let count = 0;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   for (let day = 1; day <= daysInMonth; day++) {
     const d = new Date(year, month, day);
     const dow = d.getDay();
     if (dow !== 0 && dow !== 6) count++;
+  }
+  if (country) {
+    const holidays = getPublicHolidaysInMonth(country, year, month);
+    count -= holidays.length;
   }
   return count;
 }
@@ -60,13 +67,18 @@ export function getWeeksInMonth(year: number, month: number): Date[] {
   return weeks;
 }
 
-export function getWorkingDaysInWeek(weekStart: Date, year: number, month: number): number {
+export function getWorkingDaysInWeek(weekStart: Date, year: number, month: number, country?: CountryCode): number {
   let count = 0;
+  const holidays = country ? getPublicHolidaysInMonth(country, year, month) : [];
   for (let i = 0; i < 5; i++) { // Mon-Fri
     const d = new Date(weekStart);
     d.setDate(d.getDate() + i);
     if (d.getMonth() === month && d.getFullYear() === year) {
-      count++;
+      // Check if this day is a public holiday
+      const isHoliday = holidays.some((h) => h.month === d.getMonth() && h.day === d.getDate());
+      if (!isHoliday) {
+        count++;
+      }
     }
   }
   return count;

@@ -27,6 +27,7 @@ import {
   Project,
 } from "@/lib/types";
 import { getWorkingDaysInMonth, formatMonthYear } from "@/lib/dates";
+import type { CountryCode } from "@/lib/types";
 import {
   getEmployeeAvailableDays,
   percentageToDays,
@@ -93,8 +94,14 @@ export function PlanningGrid() {
 
   // ── Shared helpers ──
 
+  function getWorkingDaysForEmployee(emp: Employee): number {
+    return getWorkingDaysInMonth(year, month, emp.country as CountryCode);
+  }
+
   function getEmployeeAvail(empId: string): number {
-    return getEmployeeAvailableDays(empId, workingDays, data!.timeOff, data!.unbillable);
+    const emp = data!.employees.find((e) => e.id === empId);
+    const empWorkingDays = emp ? getWorkingDaysForEmployee(emp) : workingDays;
+    return getEmployeeAvailableDays(empId, empWorkingDays, data!.timeOff, data!.unbillable);
   }
 
   function getMondays(): Date[] {
@@ -334,7 +341,16 @@ export function PlanningGrid() {
         <div>
           <h2 className="text-2xl" style={{ fontFamily: "var(--font-poppins)" }}>Resource Planning</h2>
           <p className="text-sm text-[#747577] mt-1">
-            {workingDays} working days &middot; {Math.round(totalPlanned)}d planned &middot; {formatMonthYear(year, month)}
+            {(() => {
+              const countries = new Set(data.employees.filter((e) => e.isActive).map((e) => e.country));
+              if (countries.size <= 1) {
+                const country = (data.employees.find((e) => e.isActive)?.country as CountryCode) || "DE";
+                return `${getWorkingDaysInMonth(year, month, country)} working days`;
+              }
+              const deCounts = getWorkingDaysInMonth(year, month, "DE");
+              const roCounts = getWorkingDaysInMonth(year, month, "RO");
+              return `${Math.min(deCounts, roCounts)}-${Math.max(deCounts, roCounts)} working days`;
+            })()} &middot; {Math.round(totalPlanned)}d planned &middot; {formatMonthYear(year, month)}
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -440,7 +456,7 @@ export function PlanningGrid() {
                     <TableCell className="text-center text-[#747577] font-medium">
                       <span
                         className="cursor-help border-b border-dotted border-[#747577]"
-                        title={`${workingDays}d working days${row.timeOffDays > 0 ? `\n- ${row.timeOffDays}d time off` : ""}${row.unbillableDays > 0 ? `\n- ${row.unbillableDays}d unbillable` : ""}\n= ${row.availDays}d available`}
+                        title={`${getWorkingDaysForEmployee(row.employee)}d working days${row.timeOffDays > 0 ? `\n- ${row.timeOffDays}d time off` : ""}${row.unbillableDays > 0 ? `\n- ${row.unbillableDays}d unbillable` : ""}\n= ${row.availDays}d available`}
                       >
                         {row.availDays}d
                       </span>
@@ -832,6 +848,23 @@ export function PlanningGrid() {
           });
         };
 
+        // Build a map of budget data for quick lookup
+        const budgetDataMap = new Map<string, { name: string; budgetDays: number | null; usedDays: number; remainingDays: number | null }>();
+        for (const budget of (data.budgets || [])) {
+          const budgetProjectIds = new Set((budget.projects || []).map((p) => p.id));
+          const budgetUsed = Math.round(
+            (data.allAllocations || [])
+              .filter((a) => budgetProjectIds.has(a.projectId))
+              .reduce((s, a) => s + a.plannedDays, 0)
+          );
+          budgetDataMap.set(budget.id, {
+            name: budget.name,
+            budgetDays: budget.budgetDays,
+            usedDays: budgetUsed,
+            remainingDays: budget.budgetDays != null ? Math.round(budget.budgetDays - budgetUsed) : null,
+          });
+        }
+
         const projectViewData = clientsWithProjects.map((client) => {
           const projects = (client.projects || []).map((project) => {
             // Current month allocations by employee
@@ -854,13 +887,16 @@ export function PlanningGrid() {
             const prevAllocs = data.prevAllocations.filter((a) => a.projectId === project.id);
             const daysLastMonth = Math.round(prevAllocs.reduce((s, a) => s + a.plannedDays, 0));
 
-            // All-time for budget
+            // All-time for budget — use budget entity if project has one, otherwise fall back to project.budgetDays
             const allTimeAllocs = (data.allAllocations || []).filter((a) => a.projectId === project.id);
             const usedDays = Math.round(allTimeAllocs.reduce((s, a) => s + a.plannedDays, 0));
-            const budgetDays = project.budgetDays;
-            const remainingDays = budgetDays != null ? Math.round(budgetDays - usedDays) : null;
 
-            return { project, daysThisMonth, daysLastMonth, usedDays, budgetDays, remainingDays, employees };
+            const budgetInfo = project.budgetId ? budgetDataMap.get(project.budgetId) : null;
+            const budgetName = budgetInfo?.name || null;
+            const budgetDays = budgetInfo ? budgetInfo.budgetDays : project.budgetDays;
+            const remainingDays = budgetInfo ? budgetInfo.remainingDays : (project.budgetDays != null ? Math.round(project.budgetDays - usedDays) : null);
+
+            return { project, daysThisMonth, daysLastMonth, usedDays, budgetDays, remainingDays, budgetName, employees };
           });
 
           const clientDaysThisMonth = projects.reduce((s, p) => s + p.daysThisMonth, 0);
@@ -928,6 +964,9 @@ export function PlanningGrid() {
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                                     </svg>
                                     <span className="font-semibold text-[#000]">{projNode.project.name}</span>
+                                    {projNode.budgetName && (
+                                      <span className="text-[10px] text-[#006284] bg-[#006284]/10 px-1.5 py-0.5 rounded">{projNode.budgetName}</span>
+                                    )}
                                   </div>
                                 </TableCell>
                                 <TableCell className="text-center">

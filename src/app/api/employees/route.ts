@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
       name: body.name,
       email: body.email,
       role: body.role || "",
+      country: body.country || "DE",
       weeklyCapacityDays: body.weeklyCapacityDays ?? 5,
     },
   });

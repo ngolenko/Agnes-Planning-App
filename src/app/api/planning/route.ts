@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const month = parseInt(searchParams.get("month") || new Date().getMonth().toString());
 
   // Fetch everything and filter client-side for reliability with SQLite date handling
-  const [employees, allAllocations, allTimeOff, allUnbillable, projects, clients] = await Promise.all([
+  const [employees, allAllocations, allTimeOff, allUnbillable, projects, clients, budgets] = await Promise.all([
     prisma.employee.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
     prisma.allocation.findMany({
       include: { project: { include: { client: true } }, employee: true },
@@ -16,11 +16,15 @@ export async function GET(request: NextRequest) {
     prisma.unbillableTime.findMany({}),
     prisma.project.findMany({
       where: { isActive: true },
-      include: { client: true },
+      include: { client: true, budget: true },
     }),
     prisma.client.findMany({
       include: { projects: { where: { isActive: true } } },
       orderBy: { name: "asc" },
+    }),
+    prisma.budget.findMany({
+      where: { isActive: true },
+      include: { client: true, projects: { where: { isActive: true } } },
     }),
   ]);
 
@@ -62,6 +66,7 @@ export async function GET(request: NextRequest) {
     allAllocations,
     projects,
     clients,
+    budgets,
     period: { year, month },
   });
 }

@@ -88,7 +88,7 @@ export default function EmployeePage() {
     );
   }
 
-  const workingDays = getWorkingDaysInMonth(year, month);
+  const workingDays = getWorkingDaysInMonth(year, month, employee.country as "DE" | "RO");
   const empTimeOff = data.timeOff.filter((t) => t.employeeId === employeeId);
   const empUnbillable = data.unbillable.filter((u) => u.employeeId === employeeId);
   const empAllocations = data.allocations.filter((a) => a.employeeId === employeeId);

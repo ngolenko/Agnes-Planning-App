@@ -51,8 +51,10 @@ export default function DashboardPage() {
     );
   }
 
-  const workingDays = getWorkingDaysInMonth(year, month);
-  const totalCapacity = data.employees.length * workingDays;
+  const totalCapacity = data.employees.reduce(
+    (sum, emp) => sum + getWorkingDaysInMonth(year, month, emp.country),
+    0
+  );
   const totalTimeOff = data.timeOff.length;
   const totalUnbillable = Math.round(data.unbillable.reduce((s, u) => s + u.plannedDays, 0));
   const totalBillable = Math.round(data.allocations.reduce((s, a) => s + a.plannedDays, 0));
@@ -66,14 +68,16 @@ export default function DashboardPage() {
     const totalPlanned = Math.round(clientAllocs.reduce((s, a) => s + a.plannedDays, 0));
 
     // Group by project
-    const projectMap = new Map<string, { projectName: string; projectId: string; days: number; employees: Set<string> }>();
+    const projectMap = new Map<string, { projectName: string; projectId: string; days: number; employees: Set<string>; budgetId: string | null }>();
     for (const a of clientAllocs) {
       if (!projectMap.has(a.projectId)) {
+        const proj = data.projects.find((p) => p.id === a.projectId);
         projectMap.set(a.projectId, {
           projectName: a.project?.name || "Unknown",
           projectId: a.projectId,
           days: 0,
           employees: new Set(),
+          budgetId: proj?.budgetId || null,
         });
       }
       const entry = projectMap.get(a.projectId)!;
@@ -94,11 +98,27 @@ export default function DashboardPage() {
         return { ...p, days: Math.round(p.days), employeeCount: p.employees.size, budgetDays, usedDays: allTimeDays, remaining };
       });
 
+    // Group projects by budget for expanded view
+    const clientBudgets = (data.budgets || []).filter((b) => b.clientId === client.id);
+    const budgetGroups = clientBudgets.map((budget) => {
+      const budgetProjectIds = new Set((budget.projects || []).map((p) => p.id));
+      const budgetProjects = projects.filter((p) => budgetProjectIds.has(p.projectId));
+      const budgetAllTimeUsed = Math.round(
+        allTimeAllocs.filter((a) => budgetProjectIds.has(a.projectId)).reduce((s, a) => s + a.plannedDays, 0)
+      );
+      const budgetRemaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budgetAllTimeUsed) : null;
+      return { budget, projects: budgetProjects, budgetAllTimeUsed, budgetRemaining };
+    });
+
+    const unassignedProjects = projects.filter((p) => !p.budgetId);
+
     return {
       client,
       totalPlanned,
       projectCount: client.projects?.length || 0,
       projects,
+      budgetGroups,
+      unassignedProjects,
     };
   }).filter((c) => c.projectCount > 0 || c.totalPlanned > 0);
 
@@ -219,33 +239,93 @@ export default function DashboardPage() {
                     </TableCell>
                   </TableRow>
 
-                  {isExpanded && cd.projects.map((proj) => (
-                    <TableRow key={`${cd.client.id}-${proj.projectId}`} className="bg-[#f5f6f7]/50 border-b-[#e2e4e7]">
-                      <TableCell className="pl-12">
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-[#87d3df]">&bull;</span>
-                          <span className="text-[#000]">{proj.projectName}</span>
-                          <span className="text-[#747577] text-xs">{proj.employeeCount} people</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className="font-medium text-[#006284]">{proj.days}d</span>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {proj.budgetDays != null ? (
-                          <span className={`text-xs ${
-                            proj.remaining != null && proj.remaining < 0 ? "text-red-600 font-semibold" :
-                            proj.remaining != null && proj.budgetDays && proj.remaining < proj.budgetDays * 0.2 ? "text-[#faa61a]" :
-                            "text-[#747577]"
-                          }`}>
-                            {proj.remaining}d / {proj.budgetDays}d budget
+                  {/* Expanded: group by budget */}
+                  {isExpanded && cd.budgetGroups.map((bg) => (
+                    <React.Fragment key={`budget-${bg.budget.id}`}>
+                      {/* Budget header row */}
+                      <TableRow className="bg-[#f5f6f7] border-b-[#e2e4e7]">
+                        <TableCell className="pl-10">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-semibold text-[#006284]">{bg.budget.name}</span>
+                            {bg.budget.budgetDays != null && (
+                              <span className={`text-xs ${
+                                bg.budgetRemaining != null && bg.budgetRemaining < 0 ? "text-red-600 font-semibold" :
+                                bg.budgetRemaining != null && bg.budget.budgetDays && bg.budgetRemaining < bg.budget.budgetDays * 0.2 ? "text-[#faa61a]" :
+                                "text-[#747577]"
+                              }`}>
+                                {bg.budgetRemaining}d / {bg.budget.budgetDays}d budget
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-sm font-medium text-[#006284]">
+                            {bg.projects.reduce((s, p) => s + p.days, 0)}d
                           </span>
-                        ) : (
-                          <span className="text-[#e2e4e7] text-xs">-</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
+                        </TableCell>
+                        <TableCell />
+                      </TableRow>
+                      {/* Projects under budget */}
+                      {bg.projects.map((proj) => (
+                        <TableRow key={`${bg.budget.id}-${proj.projectId}`} className="bg-[#f5f6f7]/50 border-b-[#e2e4e7]">
+                          <TableCell className="pl-16">
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="text-[#87d3df]">&bull;</span>
+                              <span className="text-[#000]">{proj.projectName}</span>
+                              <span className="text-[#747577] text-xs">{proj.employeeCount} people</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="font-medium text-[#006284]">{proj.days}d</span>
+                          </TableCell>
+                          <TableCell />
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
                   ))}
+
+                  {/* Unassigned projects */}
+                  {isExpanded && cd.unassignedProjects.length > 0 && (
+                    <>
+                      {cd.budgetGroups.length > 0 && (
+                        <TableRow className="bg-[#f5f6f7] border-b-[#e2e4e7]">
+                          <TableCell className="pl-10">
+                            <span className="text-xs font-semibold text-[#747577]">Unassigned Projects</span>
+                          </TableCell>
+                          <TableCell />
+                          <TableCell />
+                        </TableRow>
+                      )}
+                      {cd.unassignedProjects.map((proj) => (
+                        <TableRow key={`${cd.client.id}-unassigned-${proj.projectId}`} className="bg-[#f5f6f7]/50 border-b-[#e2e4e7]">
+                          <TableCell className={cd.budgetGroups.length > 0 ? "pl-16" : "pl-12"}>
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="text-[#87d3df]">&bull;</span>
+                              <span className="text-[#000]">{proj.projectName}</span>
+                              <span className="text-[#747577] text-xs">{proj.employeeCount} people</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="font-medium text-[#006284]">{proj.days}d</span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {proj.budgetDays != null ? (
+                              <span className={`text-xs ${
+                                proj.remaining != null && proj.remaining < 0 ? "text-red-600 font-semibold" :
+                                proj.remaining != null && proj.budgetDays && proj.remaining < proj.budgetDays * 0.2 ? "text-[#faa61a]" :
+                                "text-[#747577]"
+                              }`}>
+                                {proj.remaining}d / {proj.budgetDays}d budget
+                              </span>
+                            ) : (
+                              <span className="text-[#e2e4e7] text-xs">-</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </>
+                  )}
+
                   {isExpanded && cd.projects.length === 0 && (
                     <TableRow key={`${cd.client.id}-empty`} className="bg-[#fafbfc]">
                       <TableCell colSpan={3} className="text-center py-3 text-[#747577] text-xs">

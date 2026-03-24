@@ -12,6 +12,7 @@ model Employee {
   name               String
   email              String   @unique
   role               String   @default("")
+  country            String   @default("DE") // "DE" or "RO"
   weeklyCapacityDays Float    @default(5)
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
@@ -29,20 +30,36 @@ model Client {
   updatedAt DateTime @updatedAt
 
   projects Project[]
+  budgets  Budget[]
+}
+
+model Budget {
+  id              String   @id @default(cuid())
+  name            String
+  clientId        String
+  budgetDays      Float?
+  fabricBudgetId  String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client   Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projects Project[]
 }
 
 model Project {
   id              String   @id @default(cuid())
   name            String
   clientId        String
+  budgetId        String?
   fabricProjectId String?
-  dayRate         Float?
   budgetDays      Float?
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  budget      Budget?      @relation(fields: [budgetId], references: [id], onDelete: SetNull)
   allocations Allocation[]
 }
 

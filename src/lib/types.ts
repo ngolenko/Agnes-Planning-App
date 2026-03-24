@@ -1,8 +1,11 @@
+export type CountryCode = "DE" | "RO";
+
 export interface Employee {
   id: string;
   name: string;
   email: string;
   role: string;
+  country: CountryCode;
   weeklyCapacityDays: number;
   isActive: boolean;
 }
@@ -11,17 +14,30 @@ export interface Client {
   id: string;
   name: string;
   projects?: Project[];
+  budgets?: Budget[];
+}
+
+export interface Budget {
+  id: string;
+  name: string;
+  clientId: string;
+  budgetDays: number | null;
+  fabricBudgetId: string | null;
+  isActive: boolean;
+  client?: Client;
+  projects?: Project[];
 }
 
 export interface Project {
   id: string;
   name: string;
   clientId: string;
+  budgetId: string | null;
   fabricProjectId: string | null;
-  dayRate: number | null;
   budgetDays: number | null;
   isActive: boolean;
   client?: Client;
+  budget?: Budget;
 }
 
 export interface Allocation {
@@ -58,6 +74,7 @@ export interface PlanningData {
   unbillable: UnbillableTime[];
   projects: (Project & { client: Client })[];
   clients: (Client & { projects: Project[] })[];
+  budgets: (Budget & { client: Client; projects: Project[] })[];
   allAllocations: Allocation[];
   period: { year: number; month: number };
 }

@@ -75,3 +75,58 @@ describe("getWorkingDaysInWeek", () => {
     expect(getWorkingDaysInWeek(weekStart, 2026, 2)).toBe(2);
   });
 });
+
+describe("getWorkingDaysInMonth with country", () => {
+  it("DE January 2026 has 21 working days (22 weekdays minus 1 holiday: Jan 1 Thu)", () => {
+    // 22 weekdays in Jan 2026, minus New Year's Day (Thu Jan 1)
+    expect(getWorkingDaysInMonth(2026, 0, "DE")).toBe(21);
+  });
+
+  it("RO January 2026 has 20 working days (22 weekdays minus 2 holidays: Jan 1 Thu, Jan 2 Fri)", () => {
+    // Jan 24 is Saturday so not counted
+    expect(getWorkingDaysInMonth(2026, 0, "RO")).toBe(20);
+  });
+
+  it("without country parameter returns plain weekday count (backward compatible)", () => {
+    expect(getWorkingDaysInMonth(2026, 0)).toBe(22);
+  });
+
+  it("DE April 2026 has 20 working days (22 weekdays minus Good Friday Apr 3 and Easter Monday Apr 6)", () => {
+    expect(getWorkingDaysInMonth(2026, 3, "DE")).toBe(20);
+  });
+
+  it("RO April 2026 has 20 working days (22 weekdays minus Orthodox Good Friday Apr 10 and Orthodox Easter Monday Apr 13)", () => {
+    expect(getWorkingDaysInMonth(2026, 3, "RO")).toBe(20);
+  });
+
+  it("DE and RO have same count for months with no holidays", () => {
+    // February 2026 has no holidays for either country
+    expect(getWorkingDaysInMonth(2026, 1, "DE")).toBe(20);
+    expect(getWorkingDaysInMonth(2026, 1, "RO")).toBe(20);
+  });
+
+  it("DE October 2026 has 22 working days (Oct 3 is Saturday)", () => {
+    expect(getWorkingDaysInMonth(2026, 9, "DE")).toBe(22);
+  });
+
+  it("DE October 2025 has 22 working days (Oct 3 is Friday, so 23 weekdays minus 1)", () => {
+    expect(getWorkingDaysInMonth(2025, 9, "DE")).toBe(22);
+  });
+});
+
+describe("getWorkingDaysInWeek with country", () => {
+  it("DE week of Apr 6 2026 has 4 working days (Easter Monday Apr 6 is holiday)", () => {
+    const weekStart = new Date(2026, 3, 6); // Mon Apr 6
+    expect(getWorkingDaysInWeek(weekStart, 2026, 3, "DE")).toBe(4);
+  });
+
+  it("RO week of Apr 13 2026 has 4 working days (Orthodox Easter Monday Apr 13 is holiday)", () => {
+    const weekStart = new Date(2026, 3, 13); // Mon Apr 13
+    expect(getWorkingDaysInWeek(weekStart, 2026, 3, "RO")).toBe(4);
+  });
+
+  it("without country returns full 5 for a week with no holidays", () => {
+    const weekStart = new Date(2026, 1, 9); // Mon Feb 9
+    expect(getWorkingDaysInWeek(weekStart, 2026, 1)).toBe(5);
+  });
+});
