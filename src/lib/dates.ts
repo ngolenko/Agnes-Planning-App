@@ -67,6 +67,22 @@ export function getWeeksInMonth(year: number, month: number): Date[] {
   return weeks;
 }
 
+/**
+ * Get working days in a month adjusted for an employee's weekly capacity.
+ * E.g., if an employee works 2.5 days/week and the month has 22 working days,
+ * they have Math.round(22 * 2.5 / 5) = 11 available days.
+ */
+export function getEmployeeWorkingDaysInMonth(
+  weeklyCapacityDays: number,
+  year: number,
+  month: number,
+  country?: CountryCode
+): number {
+  const calendarDays = getWorkingDaysInMonth(year, month, country);
+  if (weeklyCapacityDays >= 5) return calendarDays;
+  return Math.round((calendarDays * weeklyCapacityDays) / 5);
+}
+
 export function getWorkingDaysInWeek(weekStart: Date, year: number, month: number, country?: CountryCode): number {
   let count = 0;
   const holidays = country ? getPublicHolidaysInMonth(country, year, month) : [];

@@ -1,0 +1,2262 @@
+{
+  "employees": [
+    {
+      "id": "3b85825174c91ffebbff6c05",
+      "name": "Nikolai Golenko",
+      "email": "nikolai@company.com",
+      "role": "Lead Developer",
+      "country": "DE",
+      "weeklyCapacityDays": 5,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "f25c7256e0d9f1fb13214d56",
+      "name": "Andrei Popescu",
+      "email": "andrei@company.com",
+      "role": "Backend Developer",
+      "country": "RO",
+      "weeklyCapacityDays": 2.5,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "2f3a9c61d878bfda4ea7885f",
+      "name": "Elena Ionescu",
+      "email": "elena@company.com",
+      "role": "Frontend Developer",
+      "country": "RO",
+      "weeklyCapacityDays": 5,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "7bd2e61ea4cd545d37bdceca",
+      "name": "Laura Fischer",
+      "email": "laura@company.com",
+      "role": "UX Designer",
+      "country": "DE",
+      "weeklyCapacityDays": 4,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "940e81d323d58f4dadf158c9",
+      "name": "Mihai Dumitrescu",
+      "email": "mihai@company.com",
+      "role": "DevOps Engineer",
+      "country": "RO",
+      "weeklyCapacityDays": 5,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ec1ac92d3eccb5ea36892015",
+      "name": "Stefan Mueller",
+      "email": "stefan@company.com",
+      "role": "Senior Developer",
+      "country": "DE",
+      "weeklyCapacityDays": 5,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    }
+  ],
+  "clients": [
+    {
+      "id": "1e287f474b5f1833ba20ed43",
+      "name": "ADAC",
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "68bf2e1c70384070224b1096",
+      "name": "Bauwerk",
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "8f87f592d3703d8f0138729b",
+      "name": "Deutsche Bahn",
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "93159d279d2cc586e478c576",
+      "name": "Siemens",
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    }
+  ],
+  "budgets": [
+    {
+      "id": "e8a951e07bf7b7efe50e30bc",
+      "name": "PLST Abloesung DAP",
+      "clientId": "1e287f474b5f1833ba20ed43",
+      "budgetDays": 120,
+      "fabricBudgetId": null,
+      "lastInvoiceDate": "2026-02-28T00:00:00.000Z",
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "96aea66375374592800ea33e",
+      "name": "ADAC Maps Relaunch",
+      "clientId": "1e287f474b5f1833ba20ed43",
+      "budgetDays": 60,
+      "fabricBudgetId": null,
+      "lastInvoiceDate": "2026-02-28T00:00:00.000Z",
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "15c75103e8d74b88f0a09bd3",
+      "name": "Bauwerk Gesamtprojekt",
+      "clientId": "68bf2e1c70384070224b1096",
+      "budgetDays": 40,
+      "fabricBudgetId": null,
+      "lastInvoiceDate": "2026-01-31T00:00:00.000Z",
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "8ac51c061be6b69757c07109",
+      "name": "DB Navigator Redesign",
+      "clientId": "8f87f592d3703d8f0138729b",
+      "budgetDays": 200,
+      "fabricBudgetId": null,
+      "lastInvoiceDate": "2026-02-28T00:00:00.000Z",
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "934105fb20b59f728194d571",
+      "name": "Siemens IoT Dashboard",
+      "clientId": "93159d279d2cc586e478c576",
+      "budgetDays": 80,
+      "fabricBudgetId": null,
+      "lastInvoiceDate": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": "d5832a1566fee25aa27fc22a",
+      "name": "PLST Abloesung DAP",
+      "clientId": "1e287f474b5f1833ba20ed43",
+      "budgetId": "e8a951e07bf7b7efe50e30bc",
+      "fabricProjectId": null,
+      "budgetDays": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "1b640d37c440112e8327d403",
+      "name": "OnCall Aufwaende",
+      "clientId": "1e287f474b5f1833ba20ed43",
+      "budgetId": "e8a951e07bf7b7efe50e30bc",
+      "fabricProjectId": null,
+      "budgetDays": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "1c2b5008ed0d3b09e0316a3e",
+      "name": "Maps Frontend",
+      "clientId": "1e287f474b5f1833ba20ed43",
+      "budgetId": "96aea66375374592800ea33e",
+      "fabricProjectId": null,
+      "budgetDays": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "9acf7d4a17226e3a40558aff",
+      "name": "Maps API",
+      "clientId": "1e287f474b5f1833ba20ed43",
+      "budgetId": "96aea66375374592800ea33e",
+      "fabricProjectId": null,
+      "budgetDays": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ee08ac18444b25ae5781527c",
+      "name": "Modul General A",
+      "clientId": "68bf2e1c70384070224b1096",
+      "budgetId": "15c75103e8d74b88f0a09bd3",
+      "fabricProjectId": null,
+      "budgetDays": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6079028ccabf7d72a25cadec",
+      "name": "Modul General B",
+      "clientId": "68bf2e1c70384070224b1096",
+      "budgetId": "15c75103e8d74b88f0a09bd3",
+      "fabricProjectId": null,
+      "budgetDays": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "49759d844704765fa0b2f5c1",
+      "name": "Modul General C",
+      "clientId": "68bf2e1c70384070224b1096",
+      "budgetId": "15c75103e8d74b88f0a09bd3",
+      "fabricProjectId": null,
+      "budgetDays": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "197cf1e7603e8d16a41811cc",
+      "name": "Navigator UI",
+      "clientId": "8f87f592d3703d8f0138729b",
+      "budgetId": "8ac51c061be6b69757c07109",
+      "fabricProjectId": null,
+      "budgetDays": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a0fa49d3e66c48a37f8bc2be",
+      "name": "Navigator Backend",
+      "clientId": "8f87f592d3703d8f0138729b",
+      "budgetId": "8ac51c061be6b69757c07109",
+      "fabricProjectId": null,
+      "budgetDays": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "8ddc7fadc6f83cf7a2e57ad7",
+      "name": "IoT Frontend",
+      "clientId": "93159d279d2cc586e478c576",
+      "budgetId": "934105fb20b59f728194d571",
+      "fabricProjectId": null,
+      "budgetDays": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "888f76f2a4ecf4d981b33d7b",
+      "name": "IoT Data Pipeline",
+      "clientId": "93159d279d2cc586e478c576",
+      "budgetId": "934105fb20b59f728194d571",
+      "fabricProjectId": null,
+      "budgetDays": null,
+      "isActive": true,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    }
+  ],
+  "allocations": [
+    {
+      "id": "8d51ccb72a25da79ad380a60",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-01-05T00:00:00.000Z",
+      "plannedDays": 2.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ec04a0eba24d8d5d1ec36257",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-01-12T00:00:00.000Z",
+      "plannedDays": 2.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "1145e6ec007750395b80d5b2",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-01-19T00:00:00.000Z",
+      "plannedDays": 2.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "7f11020bf8a2e38d66cdd6d5",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-01-26T00:00:00.000Z",
+      "plannedDays": 2.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a321d6e042d2bd0c3d7d4cb1",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-01-05T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "43ff942eb899f501c054cd5e",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-01-12T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "608c99a3c41c14522669c5f0",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-01-19T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "8db3f030d9c7e78e97ee7ca3",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-01-26T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "94799470a7530c538d30c25b",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 2.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "c3c8386d9d9466c2de5e2b15",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 2.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "614f41bc539c626d4c70770b",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 2.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "8f1c5197354b752d08615e16",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 2.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "9603228493f70de1b9e34460",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "5cbe89b12a1fa5c85193119e",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "5a8e54133c23e7144700e139",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "d3d15d529a17503b67497e38",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a049550847ad9bba14d66cbf",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "788e87a6adae12af013bb599",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "7b2d9724137d96a08495dc20",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "b69fe37660156e579720f2c1",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "2696ca0118290c68f59c71dd",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "dad4e5cb426875f424d2702c",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a057cfb30e7aa66f68896fea",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "9f44ad435ef2cda62eb02679",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "56beb73f09790dc771b1f9aa",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "e5dc480824e9a1108b445fec",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "5c8d2a75b6e0f40b652a5d6b",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "2038862fe71c28cbd3eaa181",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "8aee7f8d68fc934a249a1833",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "bb149efffd5455f25aa2d0c6",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6f7190c5207885695b3f3257",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "8ed20896f1e38f849525d150",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "083f114680a71fe68a24f397",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "7d3705c1f274bdb5c0a7a53f",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "71a5da5d4a57eade872e0f46",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "0af64c62388157c29e472fa7",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-04-06T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "abf0e7d433ea804e2e9978ea",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-04-13T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "1a513fa19cbbada9a6eb3a16",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-04-20T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "0ec8a76e517440e89449688a",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-04-27T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ed9d6331b9c3fbe81a439535",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-04-06T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a3a8eaf27e4e9fb9d2be698c",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-04-13T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "d671a48ec6723084db606788",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-04-20T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "7f7e389affb45c6f8a82baf7",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "d5832a1566fee25aa27fc22a",
+      "weekStartDate": "2026-04-27T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ccff344c9918073e19bbef48",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-01-05T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "4412da0da27d1817d25d2327",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-01-12T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "cb07e34f5017d98e74394207",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-01-19T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "cb43f5d809760e3cc6058e8c",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-01-26T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ef7df193ea8ae4eb0efa6d65",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "485ad064a1f757a004b87084",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "e0ec07f9f29ee0e34e597b45",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "09f1bb4e1c74f9cb2e028532",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "1f7d1573262ffb285b703807",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6a209a3b47b6033351103740",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "acb328f37505e8d4beda3a47",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "e88adb7cae4879c57528091c",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "80c9fe556db9f16aee6099aa",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "5087898a2883548098accce6",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-04-06T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "3da0af573e764560cf9a2f67",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-04-13T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "d1da2283a8ae6681d498f6b9",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-04-20T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "8e6077993c1df94bd75fa561",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "1b640d37c440112e8327d403",
+      "weekStartDate": "2026-04-27T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "dc43146544aef5db594e4bfc",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-01-05T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "3ebf79e6bbe447545f89e399",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-01-12T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "4e6bc025cb622d099b7c51d4",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-01-19T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "f6687a3b699651ffa34fe803",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-01-26T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "befa6c1a1a85a7bee0dc05bf",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ec58c3b35351f67109a41e3b",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "30f7fb0d161910d1c9fe043e",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "78a8382f88d4b24626d30b54",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "fcce4658cba5748eefa619b0",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "bdbee5d2421d19264fe550a3",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6989696f3a1e74ebd16d5e0a",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "3d22abe2361d87942523cffc",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "f3f86b6812e24a85d6af5d6d",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "e227b7e79f68b37c8ee9a038",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "616ee59306754cfbcb4022e8",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "206611211251ac52fc527ce3",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "cede67857f56b539d4156d5b",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "239e2bf9e5d4894e1f0de9d1",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-04-06T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "f24dab1fd178d854229b74fb",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-04-13T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "b407650bf4a135e1bc4abcce",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-04-20T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "c59f3e5deff4b442b8e31fb4",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "1c2b5008ed0d3b09e0316a3e",
+      "weekStartDate": "2026-04-27T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "e6661f0049f837b670ba02d4",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-01-05T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "2752df2aa6ef01fc14311771",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-01-12T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "4ccb9e58e26567b2931e1eb6",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-01-19T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "e324fb7ae4f60869f58d64e2",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-01-26T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "218c100afd1311ed52a52e5e",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a278d8443aa0921250476f12",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "c36bd4ad433b59c20ba08bdf",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "503e11164d647b432bbed35a",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "bf568d4692b4ba896e734e8d",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "9d2fbfbeef022ae00ef7f99b",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "89f5a32156297215b04f25c7",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "c228398b59952abf0d80df43",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "998ffe9363f597f8171584da",
+      "employeeId": "f25c7256e0d9f1fb13214d56",
+      "projectId": "9acf7d4a17226e3a40558aff",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "5475ab3ce10cf57596883da2",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-01-05T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "889514af92e0265e3db92092",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-01-12T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "1623ea53da9f2a47bf51e632",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-01-19T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "bf7d82011bb0148fc914521b",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-01-26T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "439539dad3a518f17dd76dda",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a56a3122aab4c24acf460ec6",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6835c5cfc5a6dd14ab441ee0",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6b8d6a3d3ef58dda241decf9",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ab11949f7295ff0671b72c4d",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "339f4867a34edbb3d38c7131",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "f219c9d9b1fbad692b62ea85",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "efe5f7e7069f3f9e2f298b9d",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "1d8c35121ef4685d1cc7ac25",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "ee08ac18444b25ae5781527c",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "1429c3bc22ee2458235d0870",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "6079028ccabf7d72a25cadec",
+      "weekStartDate": "2026-01-05T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "206a7ea7b531cf1184214420",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "6079028ccabf7d72a25cadec",
+      "weekStartDate": "2026-01-12T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a76434b15298a8a9a0561f51",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "6079028ccabf7d72a25cadec",
+      "weekStartDate": "2026-01-19T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "2fce6c1952739d67993864f0",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "6079028ccabf7d72a25cadec",
+      "weekStartDate": "2026-01-26T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "b787e7607dbd6e1ef09a1f34",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "6079028ccabf7d72a25cadec",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "c5417f0764773fecbce1580a",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "6079028ccabf7d72a25cadec",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6783d4c1113b5fa2c4ea1359",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "6079028ccabf7d72a25cadec",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "4dbc66335f177f7808c8fd33",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "6079028ccabf7d72a25cadec",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "7524c6e69582af825a194353",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "49759d844704765fa0b2f5c1",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "302ebe75726f4b03b22df866",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "49759d844704765fa0b2f5c1",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a02288597bcfb1fc207067b0",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "49759d844704765fa0b2f5c1",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "98b16d1b9cdd3ac5744737fa",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "49759d844704765fa0b2f5c1",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "44c594510810b0c2b2e749f4",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "49759d844704765fa0b2f5c1",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "fa8896fd0a10e4dca3bf4cea",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-01-05T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "89c8880bd432651d58bd0e41",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-01-12T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a8218c4b5b2892b44eca56e4",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-01-19T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "36856fb93800773276b15dd4",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-01-26T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "0b1e6306cd65566d7cd9b9a0",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-01-05T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "5078ef9f2529ce73fa292032",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-01-12T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "37032e71a9f9bece2f8e7b34",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-01-19T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "9c3e23639cfe567543d95061",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-01-26T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "626867cc23d1058828c01e6e",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "79b207b3d62ffea96ac3c2bf",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "250a2e11bc099b9fce241dc7",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "d370b1ac4c531b42fd2ee4e3",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "142cffe180982a480036f596",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "94fc6d7e3273aff3d36496d1",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "b887330ea607351f3fc62a81",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "4e71ccca56857371a6ce4e8b",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "503492ba5caf21222250c5ac",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "09a96d28c5c925bda516818c",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "b911d9e386317283404d8a2c",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "1e8539429a7fd080c4a79379",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "7a707fc65c2bea2b82c0316b",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "24a0d25c50b2408119a7613d",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "da567099765ce49cc6301f50",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "28bb7372d8a2c49ab15ea543",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "b00b53ee26b8a3cd924615dc",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "e796965870bd975e362f594f",
+      "employeeId": "7bd2e61ea4cd545d37bdceca",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "7bcafaba03df201e27cf4390",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-04-06T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "0657b3d8653d75ef3b010d4c",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-04-13T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "b59fa56e5f87bdb39c6514a8",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-04-20T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "3c7ba5c4bb920c11eb7a9db6",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "197cf1e7603e8d16a41811cc",
+      "weekStartDate": "2026-04-27T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "033470058174d7d359220d3c",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-01-05T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ae4fc708511ea4b747fe4bb7",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-01-12T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ab95dc5d039b30ca8cb66656",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-01-19T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "12627a6bd0bac026215c79a0",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-01-26T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "335c36bc6c75fdc6510d4ff4",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-01-05T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "22c32126ee773d19ad086a38",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-01-12T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ef4095693ec4214e460f182c",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-01-19T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "057a0e35a5f1759129ee0042",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-01-26T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "4f5e08470c1126cc6f283b9a",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "3fe5c7a999302e4c98fc8576",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "4d615d6d7c505fb5c31eb5a5",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "2caa21daa4b4b12fd0bdcc6a",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "47ff4cd2a4ba8085eb1145a6",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "16b74914e7200b24409812b0",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "05580e531ebea350ab1081ca",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "71b3b8257efee30a970dbdf8",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "0889028d2c8adcef4992b39b",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "fd64c72ead72e80c56023537",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "06fd7edff95ca6bc660c046f",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6ccd3f3a0ba115e2eca80f4b",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "e130b0689d06ad0770e2573b",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "feb6d70cd48795f48c02f3dc",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "31cf8bd2bdfbf015a8a7de59",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "b89a30cbafd2f21678b837dd",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ad648cb2d82b25e14be2c044",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "8311aec67d7154e0a5762d2d",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "489a866519eab56019a0d51b",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-04-06T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "38ad422b60fca272ec1aa399",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-04-13T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6815cbd31607d1a401136220",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-04-20T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "84d233987e683bb97f277217",
+      "employeeId": "3b85825174c91ffebbff6c05",
+      "projectId": "a0fa49d3e66c48a37f8bc2be",
+      "weekStartDate": "2026-04-27T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "111ff04a2f70b1dc0b82d9a4",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "351c6359d5bd1d115f2b08a1",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a64ec1fabe2c0d468fbe2b6d",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "916112794e2d9c850c5d7686",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "144bb0da8be68f2be3ff43e1",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "131037dbee523c4ebf9dcecd",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "c884ea05c1215edb329f1179",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "7e0fedd60d1bc2b87e824ff3",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "ef36153f7a843c460036d4c0",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "d877c0e6d966ae433ffa097d",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "35441e0464fdf7c8101c8d08",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "d90741f1776afd484f5bcb33",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "692bd78f5d0dd8f079243ce5",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a141adf33b96482c34232e97",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 0.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "2c396cf0e584b29bb04dd4ef",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-04-06T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "496fdf4f8d7c43753bb4caae",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-04-13T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "b340b8c693823e9ac2b4dfd1",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-04-20T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "7b01a3ab9f9df2545c8c4fbc",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "projectId": "8ddc7fadc6f83cf7a2e57ad7",
+      "weekStartDate": "2026-04-27T00:00:00.000Z",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "149a7474f6745c95e0e811f7",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-02-02T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "fe383fe8618ce55c8d5897aa",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-02-09T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6941f4023b64e70320f6bc13",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-02-16T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "5dd093519ebf723fa6586c71",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-02-23T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "b314a148f030cd9cb3cdc6ab",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "5ffe1d56171b1d84e7ea4e23",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "cee21fd809c1de9ec6c0a138",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "429d550469ad603705f48c8e",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "f7c1ee4fe0d637f0f41967cf",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "plannedDays": 2,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "1145841b1e0414886e991b39",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-04-06T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6e15ce4dc8a354439fcb5f6a",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-04-13T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "43e1b9cb3a7b9dab1e1193e8",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-04-20T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "a6d8db00642a40be4457ee34",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "projectId": "888f76f2a4ecf4d981b33d7b",
+      "weekStartDate": "2026-04-27T00:00:00.000Z",
+      "plannedDays": 1.5,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    }
+  ],
+  "timeOffs": [
+    {
+      "id": "796b6c8e5c1029e26c229921",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "date": "2026-03-18T00:00:00.000Z",
+      "type": "vacation",
+      "status": "confirmed",
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "6c65b8886d7191867855aefa",
+      "employeeId": "2f3a9c61d878bfda4ea7885f",
+      "date": "2026-03-19T00:00:00.000Z",
+      "type": "vacation",
+      "status": "confirmed",
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "9b0ce6fc989d84adfebfe49a",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "date": "2026-03-04T00:00:00.000Z",
+      "type": "vacation",
+      "status": "confirmed",
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "77cb1b1601e764373a807fef",
+      "employeeId": "ec1ac92d3eccb5ea36892015",
+      "date": "2026-03-05T00:00:00.000Z",
+      "type": "vacation",
+      "status": "confirmed",
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    }
+  ],
+  "unbillableTimes": [
+    {
+      "id": "ea72d02be3c883f60c7367ff",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "weekStartDate": "2026-03-02T00:00:00.000Z",
+      "category": "internal",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "e359020d076006e737f2639b",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "weekStartDate": "2026-03-09T00:00:00.000Z",
+      "category": "internal",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "5bc82ea514cdfc5c4ed409e3",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "weekStartDate": "2026-03-16T00:00:00.000Z",
+      "category": "internal",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "523afad69af1cedc6fa3568f",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "weekStartDate": "2026-03-23T00:00:00.000Z",
+      "category": "internal",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    },
+    {
+      "id": "98c0bcc44220b57051b5aa82",
+      "employeeId": "940e81d323d58f4dadf158c9",
+      "weekStartDate": "2026-03-30T00:00:00.000Z",
+      "category": "internal",
+      "plannedDays": 1,
+      "createdAt": "2026-04-09T12:54:14.498Z",
+      "updatedAt": "2026-04-09T12:54:14.498Z"
+    }
+  ]
+}

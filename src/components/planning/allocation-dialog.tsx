@@ -146,7 +146,7 @@ export function AllocationDialog({
                 <Label className="text-xs">Project</Label>
                 <Select
                   value={row.projectId}
-                  onValueChange={(v) => updateRow(index, "projectId", v)}
+                  onValueChange={(v) => v && updateRow(index, "projectId", v)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select project..." />

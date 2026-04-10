@@ -19,10 +19,12 @@ import { formatMonthYear } from "@/lib/dates";
 interface BudgetWithAllocations extends Budget {
   client: Client;
   projects: Project[];
-  totalUsedDays: number;
+  invoicedSoFar: number;
+  sinceLastInvoice: number;
   plannedThisMonth: number;
-  projectUsed: Map<string, number>;
-  projectPlannedMonth: Map<string, number>;
+  projectInvoiced: Map<string, number>;
+  projectSinceLastInvoice: Map<string, number>;
+  projectPlannedThisMonth: Map<string, number>;
 }
 
 export default function BudgetsPage() {
@@ -41,39 +43,53 @@ export default function BudgetsPage() {
     const budgetsData: (Budget & { client: Client; projects: Project[] })[] = await budgetsRes.json();
     const allocationsData: Allocation[] = await allocationsRes.json();
 
-    // All-time allocations by project
-    const allTimeByProject = new Map<string, number>();
-    for (const a of allocationsData) {
-      allTimeByProject.set(
-        a.projectId,
-        (allTimeByProject.get(a.projectId) || 0) + a.plannedDays
-      );
-    }
-
-    // Current month allocations by project
     const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
-    const monthByProject = new Map<string, number>();
-    for (const a of allocationsData) {
-      const ws = typeof a.weekStartDate === "string" ? a.weekStartDate : (a.weekStartDate as Date).toISOString();
-      if (ws.startsWith(monthStr)) {
-        monthByProject.set(
-          a.projectId,
-          (monthByProject.get(a.projectId) || 0) + a.plannedDays
-        );
-      }
-    }
 
     const enriched: BudgetWithAllocations[] = budgetsData.map((b) => {
       const projectIds = (b.projects || []).map((p) => p.id);
-      const totalUsedDays = projectIds.reduce((s, pid) => s + (allTimeByProject.get(pid) || 0), 0);
-      const plannedThisMonth = projectIds.reduce((s, pid) => s + (monthByProject.get(pid) || 0), 0);
-      const projectUsed = new Map<string, number>();
-      const projectPlannedMonth = new Map<string, number>();
+      const projectIdSet = new Set(projectIds);
+      const lastInvoiceDate = b.lastInvoiceDate ? new Date(b.lastInvoiceDate) : null;
+
+      const projectInvoiced = new Map<string, number>();
+      const projectSinceLastInvoice = new Map<string, number>();
+      const projectPlannedThisMonth = new Map<string, number>();
+
       for (const pid of projectIds) {
-        projectUsed.set(pid, allTimeByProject.get(pid) || 0);
-        projectPlannedMonth.set(pid, monthByProject.get(pid) || 0);
+        let invoiced = 0;
+        let since = 0;
+        let thisMonth = 0;
+
+        for (const a of allocationsData) {
+          if (a.projectId !== pid) continue;
+          const ws = typeof a.weekStartDate === "string" ? a.weekStartDate : (a.weekStartDate as Date).toISOString();
+          const wsDate = new Date(ws);
+
+          // Invoiced: allocations up to lastInvoiceDate (if set)
+          if (lastInvoiceDate && wsDate <= lastInvoiceDate) {
+            invoiced += a.plannedDays;
+          }
+
+          // Since last invoice: allocations after lastInvoiceDate, or all if no date
+          if (lastInvoiceDate) {
+            if (wsDate > lastInvoiceDate) since += a.plannedDays;
+          } else {
+            since += a.plannedDays;
+          }
+
+          // Planned this month: allocations in the selected month
+          if (ws.startsWith(monthStr)) thisMonth += a.plannedDays;
+        }
+
+        projectInvoiced.set(pid, invoiced);
+        projectSinceLastInvoice.set(pid, since);
+        projectPlannedThisMonth.set(pid, thisMonth);
       }
-      return { ...b, totalUsedDays, plannedThisMonth, projectUsed, projectPlannedMonth };
+
+      const invoicedSoFar = projectIds.reduce((s, pid) => s + (projectInvoiced.get(pid) || 0), 0);
+      const sinceLastInvoice = projectIds.reduce((s, pid) => s + (projectSinceLastInvoice.get(pid) || 0), 0);
+      const plannedThisMonth = projectIds.reduce((s, pid) => s + (projectPlannedThisMonth.get(pid) || 0), 0);
+
+      return { ...b, invoicedSoFar, sinceLastInvoice, plannedThisMonth, projectInvoiced, projectSinceLastInvoice, projectPlannedThisMonth };
     });
 
     setBudgets(enriched);
@@ -116,9 +132,10 @@ export default function BudgetsPage() {
 
   // Summary stats
   const totalBudgetDays = Math.round(budgets.reduce((s, b) => s + (b.budgetDays || 0), 0));
-  const totalUsedDays = Math.round(budgets.reduce((s, b) => s + b.totalUsedDays, 0));
-  const totalPlannedMonth = Math.round(budgets.reduce((s, b) => s + b.plannedThisMonth, 0));
-  const totalRemaining = totalBudgetDays - totalUsedDays;
+  const totalInvoiced = Math.round(budgets.reduce((s, b) => s + b.invoicedSoFar, 0));
+  const totalSinceLastInvoice = Math.round(budgets.reduce((s, b) => s + b.sinceLastInvoice, 0));
+  const totalPlannedThisMonth = Math.round(budgets.reduce((s, b) => s + b.plannedThisMonth, 0));
+  const totalRemaining = totalBudgetDays - totalInvoiced - totalSinceLastInvoice;
 
   const toggleBudget = (id: string) => {
     setExpandedBudgets((prev) => {
@@ -165,7 +182,7 @@ export default function BudgetsPage() {
 
         <TabsContent value="budgets" className="mt-6 space-y-6">
           {/* Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <Card className="border-[#e2e4e7] shadow-sm border-l-4 border-l-[#006284]">
               <CardContent className="pt-5 pb-4">
                 <div className="text-2xl font-bold text-[#000]" style={{ fontFamily: "var(--font-poppins)" }}>{totalBudgetDays}d</div>
@@ -175,17 +192,25 @@ export default function BudgetsPage() {
             <Card className="border-[#e2e4e7] shadow-sm border-l-4 border-l-[#87d3df]">
               <CardContent className="pt-5 pb-4">
                 <div className="text-2xl font-bold text-[#006284]" style={{ fontFamily: "var(--font-poppins)" }}>
-                  {totalUsedDays}d
+                  {totalInvoiced}d
                 </div>
-                <div className="text-xs text-[#747577]">Used So Far</div>
+                <div className="text-xs text-[#747577]">Invoiced So Far</div>
               </CardContent>
             </Card>
             <Card className="border-[#e2e4e7] shadow-sm border-l-4 border-l-[#006284]">
               <CardContent className="pt-5 pb-4">
                 <div className="text-2xl font-bold text-[#006284]" style={{ fontFamily: "var(--font-poppins)" }}>
-                  {totalPlannedMonth}d
+                  {totalSinceLastInvoice}d
                 </div>
-                <div className="text-xs text-[#747577]">Planned {formatMonthYear(year, month)}</div>
+                <div className="text-xs text-[#747577]">Since Last Invoice</div>
+              </CardContent>
+            </Card>
+            <Card className="border-[#e2e4e7] shadow-sm border-l-4 border-l-[#87d3df]">
+              <CardContent className="pt-5 pb-4">
+                <div className="text-2xl font-bold text-[#006284]" style={{ fontFamily: "var(--font-poppins)" }}>
+                  {totalPlannedThisMonth}d
+                </div>
+                <div className="text-xs text-[#747577]">Planned This Month</div>
               </CardContent>
             </Card>
             <Card className={`border-[#e2e4e7] shadow-sm border-l-4 ${totalRemaining < 0 ? "border-l-red-500" : totalRemaining < totalBudgetDays * 0.2 ? "border-l-[#faa61a]" : "border-l-[#006284]"}`}>
@@ -201,8 +226,8 @@ export default function BudgetsPage() {
           {/* Per-client budget cards */}
           {Array.from(byClient).map(([clientId, { client, budgets: clientBudgets }]) => {
             const clientTotalBudgetDays = clientBudgets.reduce((s, b) => s + (b.budgetDays || 0), 0);
-            const clientTotalUsed = Math.round(clientBudgets.reduce((s, b) => s + b.totalUsedDays, 0));
-            const clientPlannedMonth = Math.round(clientBudgets.reduce((s, b) => s + b.plannedThisMonth, 0));
+            const clientTotalInvoiced = Math.round(clientBudgets.reduce((s, b) => s + b.invoicedSoFar, 0));
+            const clientSinceLastInvoice = Math.round(clientBudgets.reduce((s, b) => s + b.sinceLastInvoice, 0));
 
             return (
               <Card key={clientId} className="border-[#e2e4e7] shadow-sm overflow-hidden">
@@ -216,7 +241,7 @@ export default function BudgetsPage() {
                         {clientBudgets.length} budget{clientBudgets.length !== 1 ? "s" : ""}
                       </span>
                       <span className="text-[#87d3df]">
-                        {clientTotalUsed}d / {Math.round(clientTotalBudgetDays)}d
+                        {clientTotalInvoiced}d / {Math.round(clientTotalBudgetDays)}d
                       </span>
                     </div>
                   </div>
@@ -227,15 +252,16 @@ export default function BudgetsPage() {
                       <TableRow className="border-b-[#e2e4e7] bg-[#f5f6f7]">
                         <TableHead className="font-semibold text-[#000]">Budget</TableHead>
                         <TableHead className="text-center font-semibold text-[#000]">Total Budget</TableHead>
-                        <TableHead className="text-center font-semibold text-[#000]">Used So Far</TableHead>
-                        <TableHead className="text-center font-semibold text-[#000]">Planned {formatMonthYear(year, month)}</TableHead>
+                        <TableHead className="text-center font-semibold text-[#000]">Invoiced So Far</TableHead>
+                        <TableHead className="text-center font-semibold text-[#000]">Since Last Invoice</TableHead>
+                        <TableHead className="text-center font-semibold text-[#000]">Planned This Month</TableHead>
                         <TableHead className="text-center font-semibold text-[#000]">Remaining</TableHead>
                         <TableHead className="text-center font-semibold text-[#000]">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {clientBudgets.map((budget) => {
-                        const remaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budget.totalUsedDays) : null;
+                        const remaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budget.invoicedSoFar - budget.sinceLastInvoice) : null;
                         const isExpanded = expandedBudgets.has(budget.id);
                         return (
                           <React.Fragment key={budget.id}>
@@ -250,13 +276,21 @@ export default function BudgetsPage() {
                                   </svg>
                                   {budget.name}
                                   <span className="text-xs text-[#747577]">({budget.projects?.length || 0} projects)</span>
+                                  {budget.lastInvoiceDate && (
+                                    <span className="text-[10px] text-[#747577] bg-[#f5f6f7] px-1.5 py-0.5 rounded border border-[#e2e4e7]">
+                                      Last invoice: {new Date(budget.lastInvoiceDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                                    </span>
+                                  )}
                                 </div>
                               </TableCell>
                               <TableCell className="text-center font-medium text-[#000]">
                                 {budget.budgetDays != null ? `${budget.budgetDays}d` : "-"}
                               </TableCell>
                               <TableCell className="text-center font-semibold text-[#006284]">
-                                {Math.round(budget.totalUsedDays)}d
+                                {Math.round(budget.invoicedSoFar)}d
+                              </TableCell>
+                              <TableCell className="text-center font-medium text-[#006284]">
+                                {Math.round(budget.sinceLastInvoice)}d
                               </TableCell>
                               <TableCell className="text-center font-medium text-[#006284]">
                                 {Math.round(budget.plannedThisMonth)}d
@@ -283,8 +317,9 @@ export default function BudgetsPage() {
                               </TableCell>
                             </TableRow>
                             {isExpanded && (budget.projects || []).map((proj) => {
-                              const projUsed = Math.round(budget.projectUsed.get(proj.id) || 0);
-                              const projPlanned = Math.round(budget.projectPlannedMonth.get(proj.id) || 0);
+                              const projInvoiced = Math.round(budget.projectInvoiced.get(proj.id) || 0);
+                              const projSince = Math.round(budget.projectSinceLastInvoice.get(proj.id) || 0);
+                              const projThisMonth = Math.round(budget.projectPlannedThisMonth.get(proj.id) || 0);
                               return (
                                 <TableRow key={`${budget.id}-${proj.id}`} className="bg-[#f5f6f7]/50 border-b-[#e2e4e7]">
                                   <TableCell className="pl-12">
@@ -295,10 +330,13 @@ export default function BudgetsPage() {
                                   </TableCell>
                                   <TableCell />
                                   <TableCell className="text-center text-sm text-[#747577]">
-                                    {projUsed > 0 ? `${projUsed}d` : "-"}
+                                    {projInvoiced > 0 ? `${projInvoiced}d` : "-"}
                                   </TableCell>
                                   <TableCell className="text-center text-sm text-[#747577]">
-                                    {projPlanned > 0 ? `${projPlanned}d` : "-"}
+                                    {projSince > 0 ? `${projSince}d` : "-"}
+                                  </TableCell>
+                                  <TableCell className="text-center text-sm text-[#747577]">
+                                    {projThisMonth > 0 ? `${projThisMonth}d` : "-"}
                                   </TableCell>
                                   <TableCell />
                                   <TableCell />
@@ -307,7 +345,7 @@ export default function BudgetsPage() {
                             })}
                             {isExpanded && (!budget.projects || budget.projects.length === 0) && (
                               <TableRow key={`${budget.id}-empty`} className="bg-[#f5f6f7]/30">
-                                <TableCell colSpan={6} className="text-center py-2 text-[#747577] text-xs pl-12">
+                                <TableCell colSpan={7} className="text-center py-2 text-[#747577] text-xs pl-12">
                                   No projects in this budget
                                 </TableCell>
                               </TableRow>
@@ -384,8 +422,9 @@ export default function BudgetsPage() {
                     <TableHead className="font-semibold text-[#000]">Customer</TableHead>
                     <TableHead className="font-semibold text-[#000]">Budget Name</TableHead>
                     <TableHead className="text-center font-semibold text-[#000]">Total Budget</TableHead>
-                    <TableHead className="text-center font-semibold text-[#000]">Used So Far</TableHead>
-                    <TableHead className="text-center font-semibold text-[#000]">Planned {formatMonthYear(year, month)}</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000]">Invoiced So Far</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000]">Since Last Invoice</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000]">Planned This Month</TableHead>
                     <TableHead className="text-center font-semibold text-[#000]">Remaining</TableHead>
                     <TableHead className="text-center font-semibold text-[#000]">Projects</TableHead>
                     <TableHead className="text-center font-semibold text-[#000]">Status</TableHead>
@@ -393,7 +432,7 @@ export default function BudgetsPage() {
                 </TableHeader>
                 <TableBody>
                   {budgets.map((budget) => {
-                    const remaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budget.totalUsedDays) : null;
+                    const remaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budget.invoicedSoFar - budget.sinceLastInvoice) : null;
                     return (
                       <TableRow key={budget.id} className="border-b-[#e2e4e7]">
                         <TableCell className="text-[#000] font-medium">{budget.client.name}</TableCell>
@@ -402,7 +441,10 @@ export default function BudgetsPage() {
                           {budget.budgetDays != null ? `${budget.budgetDays}d` : "-"}
                         </TableCell>
                         <TableCell className="text-center font-semibold text-[#006284]">
-                          {Math.round(budget.totalUsedDays)}d
+                          {Math.round(budget.invoicedSoFar)}d
+                        </TableCell>
+                        <TableCell className="text-center font-medium text-[#006284]">
+                          {Math.round(budget.sinceLastInvoice)}d
                         </TableCell>
                         <TableCell className="text-center font-medium text-[#006284]">
                           {Math.round(budget.plannedThisMonth)}d
@@ -435,7 +477,7 @@ export default function BudgetsPage() {
                   })}
                   {budgets.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-[#747577]">
+                      <TableCell colSpan={9} className="text-center py-8 text-[#747577]">
                         No budgets configured yet.
                       </TableCell>
                     </TableRow>

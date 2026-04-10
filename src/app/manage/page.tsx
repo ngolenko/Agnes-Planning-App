@@ -193,24 +193,73 @@ export default function ManagePage() {
     return client.projects.filter((p) => !p.budgetId);
   };
 
-  // Helper: used days for a project
-  const getProjectUsedDays = (projectId: string) =>
-    Math.round(allocations.filter((a) => a.projectId === projectId).reduce((s, a) => s + a.plannedDays, 0));
-
-  // Helper: used days for a budget (sum across all projects in that budget)
-  const getBudgetUsedDays = (budgetId: string) => {
-    const budgetProjects = getProjectsForBudget(budgetId);
-    return budgetProjects.reduce((s, p) => s + getProjectUsedDays(p.id), 0);
+  // Helper: invoiced days for a project (up to lastInvoiceDate)
+  const getProjectInvoicedDays = (projectId: string, lastInvoiceDate: Date | null) => {
+    if (!lastInvoiceDate) return 0;
+    return Math.round(
+      allocations
+        .filter((a) => a.projectId === projectId && new Date(a.weekStartDate) <= lastInvoiceDate)
+        .reduce((s, a) => s + a.plannedDays, 0)
+    );
   };
 
-  // Helper: planned this month for a project
-  const getProjectPlannedThisMonth = (projectId: string) =>
-    Math.round(monthAllocations.filter((a) => a.projectId === projectId).reduce((s, a) => s + a.plannedDays, 0));
+  // Helper: invoiced days for a budget (sum across all projects, up to lastInvoiceDate)
+  const getBudgetInvoicedDays = (budget: Budget) => {
+    const budgetProjects = getProjectsForBudget(budget.id);
+    const lastInvoiceDate = budget.lastInvoiceDate ? new Date(budget.lastInvoiceDate) : null;
+    return budgetProjects.reduce((s, p) => s + getProjectInvoicedDays(p.id, lastInvoiceDate), 0);
+  };
 
   // Helper: planned this month for a budget
   const getBudgetPlannedThisMonth = (budgetId: string) => {
     const budgetProjects = getProjectsForBudget(budgetId);
-    return budgetProjects.reduce((s, p) => s + getProjectPlannedThisMonth(p.id), 0);
+    return Math.round(
+      monthAllocations
+        .filter((a) => budgetProjects.some((p) => p.id === a.projectId))
+        .reduce((s, a) => s + a.plannedDays, 0)
+    );
+  };
+
+  // Helper: allocations since last invoice for a budget
+  const getBudgetSinceLastInvoice = (budget: Budget) => {
+    const budgetProjects = getProjectsForBudget(budget.id);
+    const lastInvoiceDate = budget.lastInvoiceDate ? new Date(budget.lastInvoiceDate) : null;
+    if (lastInvoiceDate) {
+      return Math.round(
+        allocations
+          .filter((a) => budgetProjects.some((p) => p.id === a.projectId) && new Date(a.weekStartDate) > lastInvoiceDate)
+          .reduce((s, a) => s + a.plannedDays, 0)
+      );
+    }
+    // Fallback: current month
+    return Math.round(
+      monthAllocations
+        .filter((a) => budgetProjects.some((p) => p.id === a.projectId))
+        .reduce((s, a) => s + a.plannedDays, 0)
+    );
+  };
+
+  // Helper: allocations since last invoice for a project within a budget
+  const getProjectSinceLastInvoice = (projectId: string, budget: Budget) => {
+    const lastInvoiceDate = budget.lastInvoiceDate ? new Date(budget.lastInvoiceDate) : null;
+    if (lastInvoiceDate) {
+      return Math.round(
+        allocations
+          .filter((a) => a.projectId === projectId && new Date(a.weekStartDate) > lastInvoiceDate)
+          .reduce((s, a) => s + a.plannedDays, 0)
+      );
+    }
+    return Math.round(monthAllocations.filter((a) => a.projectId === projectId).reduce((s, a) => s + a.plannedDays, 0));
+  };
+
+  // Helper: update lastInvoiceDate for a budget
+  const updateBudgetLastInvoiceDate = async (budgetId: string, date: string) => {
+    await fetch(`/api/budgets/${budgetId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lastInvoiceDate: date || null }),
+    });
+    fetchData();
   };
 
   // Filtered budgets for project dialog based on selected client
@@ -346,9 +395,10 @@ export default function ManagePage() {
 
                     {/* Budgets */}
                     {clientBudgets.map((budget) => {
-                      const budgetUsed = getBudgetUsedDays(budget.id);
-                      const budgetThisMonth = getBudgetPlannedThisMonth(budget.id);
-                      const budgetRemaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budgetUsed) : null;
+                      const budgetInvoiced = getBudgetInvoicedDays(budget);
+                      const budgetSinceInvoice = getBudgetSinceLastInvoice(budget);
+                      const budgetPlannedMonth = getBudgetPlannedThisMonth(budget.id);
+                      const budgetRemaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budgetInvoiced - budgetSinceInvoice) : null;
                       const budgetProjectsList = getProjectsForBudget(budget.id);
 
                       return (
@@ -356,29 +406,47 @@ export default function ManagePage() {
                           <div className="flex items-center justify-between bg-[#f5f6f7] rounded px-3 py-2 mb-1">
                             <div className="flex items-center gap-3">
                               <span className="font-semibold text-[#006284] text-sm">{budget.name}</span>
+                              {budget.lastInvoiceDate && (
+                                <span className="text-[10px] text-[#747577]">
+                                  Last invoice: {new Date(budget.lastInvoiceDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                                </span>
+                              )}
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-500 h-6 text-xs"
-                              onClick={() => deleteBudget(budget.id)}
-                            >
-                              Delete Budget
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="date"
+                                className="text-xs border border-[#e2e4e7] rounded px-2 py-1 text-[#747577]"
+                                value={budget.lastInvoiceDate ? new Date(budget.lastInvoiceDate).toISOString().split("T")[0] : ""}
+                                onChange={(e) => updateBudgetLastInvoiceDate(budget.id, e.target.value)}
+                                title="Last invoice date"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 h-6 text-xs"
+                                onClick={() => deleteBudget(budget.id)}
+                              >
+                                Delete Budget
+                              </Button>
+                            </div>
                           </div>
                           {budget.budgetDays != null && (
-                            <div className="grid grid-cols-4 gap-2 ml-4 mb-2">
+                            <div className="grid grid-cols-5 gap-2 ml-4 mb-2">
                               <div className="bg-white border border-[#e2e4e7] rounded px-3 py-2">
                                 <div className="text-sm font-bold text-[#000]" style={{ fontFamily: "var(--font-poppins)" }}>{budget.budgetDays}d</div>
                                 <div className="text-[10px] text-[#747577]">Total</div>
                               </div>
                               <div className="bg-white border border-[#e2e4e7] rounded px-3 py-2">
-                                <div className="text-sm font-bold text-[#006284]" style={{ fontFamily: "var(--font-poppins)" }}>{budgetUsed}d</div>
-                                <div className="text-[10px] text-[#747577]">Used So Far</div>
+                                <div className="text-sm font-bold text-[#006284]" style={{ fontFamily: "var(--font-poppins)" }}>{budgetInvoiced}d</div>
+                                <div className="text-[10px] text-[#747577]">Invoiced So Far</div>
                               </div>
                               <div className="bg-white border border-[#e2e4e7] rounded px-3 py-2">
-                                <div className="text-sm font-bold text-[#006284]" style={{ fontFamily: "var(--font-poppins)" }}>{budgetThisMonth}d</div>
-                                <div className="text-[10px] text-[#747577]">This Month</div>
+                                <div className="text-sm font-bold text-[#006284]" style={{ fontFamily: "var(--font-poppins)" }}>{budgetSinceInvoice}d</div>
+                                <div className="text-[10px] text-[#747577]">Since Last Invoice</div>
+                              </div>
+                              <div className="bg-white border border-[#e2e4e7] rounded px-3 py-2">
+                                <div className="text-sm font-bold text-[#006284]" style={{ fontFamily: "var(--font-poppins)" }}>{budgetPlannedMonth}d</div>
+                                <div className="text-[10px] text-[#747577]">Planned This Month</div>
                               </div>
                               <div className="bg-white border border-[#e2e4e7] rounded px-3 py-2">
                                 <div className={`text-sm font-bold ${
@@ -395,15 +463,16 @@ export default function ManagePage() {
                               <TableHeader>
                                 <TableRow>
                                   <TableHead className="text-[#000] font-semibold w-[35%]">Project</TableHead>
-                                  <TableHead className="text-center text-[#000] font-semibold w-[15%]">Used</TableHead>
-                                  <TableHead className="text-center text-[#000] font-semibold w-[15%]">This Month</TableHead>
+                                  <TableHead className="text-center text-[#000] font-semibold w-[15%]">Invoiced</TableHead>
+                                  <TableHead className="text-center text-[#000] font-semibold w-[15%]">Since Last Invoice</TableHead>
                                   <TableHead className="text-right text-[#000] font-semibold w-[20%]">Actions</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
                                 {budgetProjectsList.map((proj) => {
-                                  const usedDays = getProjectUsedDays(proj.id);
-                                  const plannedMonth = getProjectPlannedThisMonth(proj.id);
+                                  const lastInvDate = budget.lastInvoiceDate ? new Date(budget.lastInvoiceDate) : null;
+                                  const usedDays = getProjectInvoicedDays(proj.id, lastInvDate);
+                                  const sinceInvoice = getProjectSinceLastInvoice(proj.id, budget);
                                   return (
                                     <TableRow key={proj.id}>
                                       <TableCell>{proj.name}</TableCell>
@@ -411,7 +480,7 @@ export default function ManagePage() {
                                         {usedDays > 0 ? `${usedDays}d` : "-"}
                                       </TableCell>
                                       <TableCell className="text-center">
-                                        {plannedMonth > 0 ? `${plannedMonth}d` : "-"}
+                                        {sinceInvoice > 0 ? `${sinceInvoice}d` : "-"}
                                       </TableCell>
                                       <TableCell className="text-right">
                                         <Button
@@ -453,7 +522,7 @@ export default function ManagePage() {
                           </TableHeader>
                           <TableBody>
                             {unassignedProjects.map((proj) => {
-                              const usedDays = getProjectUsedDays(proj.id);
+                              const usedDays = Math.round(allocations.filter((a) => a.projectId === proj.id).reduce((s, a) => s + a.plannedDays, 0));
                               const remaining = proj.budgetDays != null ? Math.round(proj.budgetDays - usedDays) : null;
                               return (
                                 <TableRow key={proj.id}>
@@ -531,7 +600,7 @@ export default function ManagePage() {
             </div>
             <div>
               <Label>Country</Label>
-              <Select value={empCountry} onValueChange={setEmpCountry}>
+              <Select value={empCountry} onValueChange={(v) => v && setEmpCountry(v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select country..." />
                 </SelectTrigger>
@@ -591,7 +660,7 @@ export default function ManagePage() {
           <div className="space-y-4 mt-4">
             <div>
               <Label>Client</Label>
-              <Select value={budgetClientId} onValueChange={setBudgetClientId}>
+              <Select value={budgetClientId} onValueChange={(v) => v && setBudgetClientId(v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select client..." />
                 </SelectTrigger>
@@ -638,7 +707,7 @@ export default function ManagePage() {
           <div className="space-y-4 mt-4">
             <div>
               <Label>Client</Label>
-              <Select value={projClientId} onValueChange={(v) => { setProjClientId(v); setProjBudgetId(""); }}>
+              <Select value={projClientId} onValueChange={(v) => { if (v) { setProjClientId(v); setProjBudgetId(""); } }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select client..." />
                 </SelectTrigger>
@@ -661,7 +730,7 @@ export default function ManagePage() {
             {budgetsForProjectDialog.length > 0 && (
               <div>
                 <Label>Budget (optional)</Label>
-                <Select value={projBudgetId} onValueChange={setProjBudgetId}>
+                <Select value={projBudgetId} onValueChange={(v) => v && setProjBudgetId(v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="No budget (unassigned)" />
                   </SelectTrigger>

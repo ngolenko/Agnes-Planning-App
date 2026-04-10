@@ -26,7 +26,7 @@ import {
   Client,
   Project,
 } from "@/lib/types";
-import { getWorkingDaysInMonth, formatMonthYear } from "@/lib/dates";
+import { getWorkingDaysInMonth, getEmployeeWorkingDaysInMonth, formatMonthYear } from "@/lib/dates";
 import type { CountryCode } from "@/lib/types";
 import {
   getEmployeeAvailableDays,
@@ -57,6 +57,7 @@ export function PlanningGrid() {
 
   // Project view state
   const [expandedPVClients, setExpandedPVClients] = useState<Set<string>>(new Set());
+  const [expandedPVBudgets, setExpandedPVBudgets] = useState<Set<string>>(new Set());
   const [expandedPVProjects, setExpandedPVProjects] = useState<Set<string>>(new Set());
 
   const fetchData = useCallback(async () => {
@@ -95,7 +96,7 @@ export function PlanningGrid() {
   // ── Shared helpers ──
 
   function getWorkingDaysForEmployee(emp: Employee): number {
-    return getWorkingDaysInMonth(year, month, emp.country as CountryCode);
+    return getEmployeeWorkingDaysInMonth(emp.weeklyCapacityDays, year, month, emp.country as CountryCode);
   }
 
   function getEmployeeAvail(empId: string): number {
@@ -840,6 +841,13 @@ export function PlanningGrid() {
             return next;
           });
         };
+        const togglePVBudget = (id: string) => {
+          setExpandedPVBudgets((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+          });
+        };
         const togglePVProject = (id: string) => {
           setExpandedPVProjects((prev) => {
             const next = new Set(prev);
@@ -848,59 +856,107 @@ export function PlanningGrid() {
           });
         };
 
-        // Build a map of budget data for quick lookup
-        const budgetDataMap = new Map<string, { name: string; budgetDays: number | null; usedDays: number; remainingDays: number | null }>();
-        for (const budget of (data.budgets || [])) {
-          const budgetProjectIds = new Set((budget.projects || []).map((p) => p.id));
-          const budgetUsed = Math.round(
-            (data.allAllocations || [])
-              .filter((a) => budgetProjectIds.has(a.projectId))
-              .reduce((s, a) => s + a.plannedDays, 0)
-          );
-          budgetDataMap.set(budget.id, {
-            name: budget.name,
-            budgetDays: budget.budgetDays,
-            usedDays: budgetUsed,
-            remainingDays: budget.budgetDays != null ? Math.round(budget.budgetDays - budgetUsed) : null,
-          });
+        // Helper: build project node with allocations
+        function buildProjectNode(project: Project) {
+          const currentAllocs = data!.allocations.filter((a) => a.projectId === project.id);
+          const empMap = new Map<string, number>();
+          for (const a of currentAllocs) {
+            empMap.set(a.employeeId, (empMap.get(a.employeeId) || 0) + a.plannedDays);
+          }
+          const employees = Array.from(empMap.entries())
+            .map(([empId, days]) => ({
+              employee: data!.employees.find((e) => e.id === empId),
+              days: Math.round(days),
+            }))
+            .filter((e) => e.employee && e.days > 0)
+            .sort((a, b) => b.days - a.days);
+
+          const daysThisMonth = Math.round(currentAllocs.reduce((s, a) => s + a.plannedDays, 0));
+          const prevAllocs = data!.prevAllocations.filter((a) => a.projectId === project.id);
+          const daysLastMonth = Math.round(prevAllocs.reduce((s, a) => s + a.plannedDays, 0));
+          const allTimeAllocs = (data!.allAllocations || []).filter((a) => a.projectId === project.id);
+          const usedDays = Math.round(allTimeAllocs.reduce((s, a) => s + a.plannedDays, 0));
+
+          return { project, daysThisMonth, daysLastMonth, usedDays, employees };
         }
 
+        // Build Client → Budget → Project hierarchy
         const projectViewData = clientsWithProjects.map((client) => {
-          const projects = (client.projects || []).map((project) => {
-            // Current month allocations by employee
-            const currentAllocs = data.allocations.filter((a) => a.projectId === project.id);
-            const empMap = new Map<string, number>();
-            for (const a of currentAllocs) {
-              empMap.set(a.employeeId, (empMap.get(a.employeeId) || 0) + a.plannedDays);
+          const clientProjects = client.projects || [];
+          const clientBudgets = (data!.budgets || []).filter((b) => b.clientId === client.id);
+
+          // Group projects by budget
+          type ProjectNode = ReturnType<typeof buildProjectNode>;
+          interface BudgetGroup {
+            budgetId: string;
+            budgetName: string;
+            budgetDays: number | null;
+            lastInvoiceDate: string | null;
+            invoicedSoFar: number;
+            remainingDays: number | null;
+            sinceLastInvoice: number;
+            projects: ProjectNode[];
+            daysThisMonth: number;
+          }
+
+          const budgetGroups: BudgetGroup[] = clientBudgets.map((budget) => {
+            const budgetProjectIds = new Set((budget.projects || []).map((p) => p.id));
+            const budgetProjects = clientProjects
+              .filter((p) => budgetProjectIds.has(p.id))
+              .map(buildProjectNode);
+
+            const lastDate = budget.lastInvoiceDate ? new Date(budget.lastInvoiceDate) : null;
+            const allAllocs = data!.allAllocations || [];
+
+            // Invoiced: only allocations up to lastInvoiceDate
+            const invoicedSoFar = lastDate
+              ? Math.round(
+                  allAllocs
+                    .filter((a) => budgetProjectIds.has(a.projectId) && new Date(a.weekStartDate) <= lastDate)
+                    .reduce((s, a) => s + a.plannedDays, 0)
+                )
+              : 0;
+
+            // Since last invoice: allocations after lastInvoiceDate, or all if no date
+            let sinceLastInvoice: number;
+            if (lastDate) {
+              sinceLastInvoice = Math.round(
+                allAllocs
+                  .filter((a) => budgetProjectIds.has(a.projectId) && new Date(a.weekStartDate) > lastDate)
+                  .reduce((s, a) => s + a.plannedDays, 0)
+              );
+            } else {
+              sinceLastInvoice = Math.round(
+                allAllocs
+                  .filter((a) => budgetProjectIds.has(a.projectId))
+                  .reduce((s, a) => s + a.plannedDays, 0)
+              );
             }
-            const employees = Array.from(empMap.entries())
-              .map(([empId, days]) => ({
-                employee: data.employees.find((e) => e.id === empId),
-                days: Math.round(days),
-              }))
-              .filter((e) => e.employee && e.days > 0)
-              .sort((a, b) => b.days - a.days);
 
-            const daysThisMonth = Math.round(currentAllocs.reduce((s, a) => s + a.plannedDays, 0));
-
-            // Previous month
-            const prevAllocs = data.prevAllocations.filter((a) => a.projectId === project.id);
-            const daysLastMonth = Math.round(prevAllocs.reduce((s, a) => s + a.plannedDays, 0));
-
-            // All-time for budget — use budget entity if project has one, otherwise fall back to project.budgetDays
-            const allTimeAllocs = (data.allAllocations || []).filter((a) => a.projectId === project.id);
-            const usedDays = Math.round(allTimeAllocs.reduce((s, a) => s + a.plannedDays, 0));
-
-            const budgetInfo = project.budgetId ? budgetDataMap.get(project.budgetId) : null;
-            const budgetName = budgetInfo?.name || null;
-            const budgetDays = budgetInfo ? budgetInfo.budgetDays : project.budgetDays;
-            const remainingDays = budgetInfo ? budgetInfo.remainingDays : (project.budgetDays != null ? Math.round(project.budgetDays - usedDays) : null);
-
-            return { project, daysThisMonth, daysLastMonth, usedDays, budgetDays, remainingDays, budgetName, employees };
+            return {
+              budgetId: budget.id,
+              budgetName: budget.name,
+              budgetDays: budget.budgetDays,
+              lastInvoiceDate: budget.lastInvoiceDate,
+              invoicedSoFar,
+              remainingDays: budget.budgetDays != null ? Math.round(budget.budgetDays - invoicedSoFar - sinceLastInvoice) : null,
+              sinceLastInvoice,
+              projects: budgetProjects,
+              daysThisMonth: budgetProjects.reduce((s, p) => s + p.daysThisMonth, 0),
+            };
           });
 
-          const clientDaysThisMonth = projects.reduce((s, p) => s + p.daysThisMonth, 0);
-          return { client, projects, clientDaysThisMonth };
+          // Unassigned projects (no budget)
+          const assignedProjectIds = new Set(clientBudgets.flatMap((b) => (b.projects || []).map((p) => p.id)));
+          const unassignedProjects = clientProjects
+            .filter((p) => !assignedProjectIds.has(p.id))
+            .map(buildProjectNode);
+
+          const clientDaysThisMonth =
+            budgetGroups.reduce((s, bg) => s + bg.daysThisMonth, 0) +
+            unassignedProjects.reduce((s, p) => s + p.daysThisMonth, 0);
+
+          return { client, budgetGroups, unassignedProjects, clientDaysThisMonth };
         });
 
         return (
@@ -914,12 +970,12 @@ export function PlanningGrid() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-b-[#e2e4e7] bg-[#f5f6f7]">
-                    <TableHead className="font-semibold text-[#000] w-[280px]">Client / Project / Person</TableHead>
-                    <TableHead className="text-center font-semibold text-[#000] w-[90px]">Budget</TableHead>
-                    <TableHead className="text-center font-semibold text-[#000] w-[90px]">Used</TableHead>
-                    <TableHead className="text-center font-semibold text-[#000] w-[90px]">Remaining</TableHead>
-                    <TableHead className="text-center font-semibold text-[#000] w-[100px]">This Month</TableHead>
-                    <TableHead className="text-center font-semibold text-[#000] w-[100px]">Last Month</TableHead>
+                    <TableHead className="font-semibold text-[#000] w-[280px]">Client / Budget / Project</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000] w-[80px]">Budget</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000] w-[80px]">Invoiced</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000] w-[100px]">Since Last Invoice</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000] w-[90px]">This Month</TableHead>
+                    <TableHead className="text-center font-semibold text-[#000] w-[80px]">Remaining</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -949,81 +1005,186 @@ export function PlanningGrid() {
                           <TableCell />
                         </TableRow>
 
-                        {/* PROJECT ROWS */}
-                        {clientExpanded && clientNode.projects.map((projNode) => {
-                          const projExpanded = expandedPVProjects.has(projNode.project.id);
+                        {/* BUDGET ROWS */}
+                        {clientExpanded && clientNode.budgetGroups.map((bg) => {
+                          const budgetExpanded = expandedPVBudgets.has(bg.budgetId);
                           return (
-                            <React.Fragment key={projNode.project.id}>
+                            <React.Fragment key={bg.budgetId}>
                               <TableRow
-                                className={`border-b-[#e2e4e7] cursor-pointer transition-colors hover:bg-[#e8f7fa]/60 ${projExpanded ? "bg-[#fafbfc]" : "bg-white"}`}
-                                onClick={() => togglePVProject(projNode.project.id)}
+                                className="border-b-[#e2e4e7] cursor-pointer transition-colors hover:bg-[#e8f7fa]/60 bg-[#f5f6f7]/60"
+                                onClick={() => togglePVBudget(bg.budgetId)}
                               >
                                 <TableCell className="pl-10">
                                   <div className="flex items-center gap-2">
-                                    <svg className={`w-3.5 h-3.5 text-[#006284] transition-transform ${projExpanded ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <svg className={`w-3.5 h-3.5 text-[#006284] transition-transform ${budgetExpanded ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                                     </svg>
-                                    <span className="font-semibold text-[#000]">{projNode.project.name}</span>
-                                    {projNode.budgetName && (
-                                      <span className="text-[10px] text-[#006284] bg-[#006284]/10 px-1.5 py-0.5 rounded">{projNode.budgetName}</span>
+                                    <span className="font-semibold text-[#006284]">{bg.budgetName}</span>
+                                    <span className="text-[10px] text-[#747577]">({bg.projects.length} projects)</span>
+                                    {bg.lastInvoiceDate && (
+                                      <span className="text-[10px] text-[#747577] bg-[#f5f6f7] px-1.5 py-0.5 rounded border border-[#e2e4e7]">
+                                        Last invoice: {new Date(bg.lastInvoiceDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                                      </span>
                                     )}
                                   </div>
                                 </TableCell>
                                 <TableCell className="text-center">
-                                  {projNode.budgetDays != null ? (
-                                    <span className="font-medium text-[#000]">{projNode.budgetDays}d</span>
-                                  ) : <span className="text-[#e2e4e7]">-</span>}
-                                </TableCell>
-                                <TableCell className="text-center font-medium text-[#000]">
-                                  {projNode.usedDays > 0 ? `${projNode.usedDays}d` : <span className="text-[#e2e4e7]">-</span>}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  {projNode.remainingDays != null ? (
-                                    <span className={`font-semibold ${
-                                      projNode.remainingDays < 0 ? "text-red-600"
-                                      : projNode.budgetDays && projNode.remainingDays < projNode.budgetDays * 0.2 ? "text-[#faa61a]"
-                                      : "text-[#006284]"
-                                    }`}>
-                                      {projNode.remainingDays}d
-                                    </span>
+                                  {bg.budgetDays != null ? (
+                                    <span className="font-medium text-[#000]">{bg.budgetDays}d</span>
                                   ) : <span className="text-[#e2e4e7]">-</span>}
                                 </TableCell>
                                 <TableCell className="text-center font-semibold text-[#006284]">
-                                  {projNode.daysThisMonth > 0 ? `${projNode.daysThisMonth}d` : <span className="text-[#e2e4e7]">-</span>}
+                                  {bg.invoicedSoFar > 0 ? `${bg.invoicedSoFar}d` : <span className="text-[#e2e4e7]">-</span>}
                                 </TableCell>
-                                <TableCell className="text-center text-[#747577]">
-                                  {projNode.daysLastMonth > 0 ? `${projNode.daysLastMonth}d` : <span className="text-[#e2e4e7]">-</span>}
+                                <TableCell className="text-center font-semibold text-[#006284]">
+                                  {bg.sinceLastInvoice > 0 ? `${bg.sinceLastInvoice}d` : <span className="text-[#e2e4e7]">-</span>}
+                                </TableCell>
+                                <TableCell className="text-center font-semibold text-[#006284]">
+                                  {bg.daysThisMonth > 0 ? `${bg.daysThisMonth}d` : <span className="text-[#e2e4e7]">-</span>}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  {bg.remainingDays != null ? (
+                                    <span className={`font-semibold ${
+                                      bg.remainingDays < 0 ? "text-red-600"
+                                      : bg.budgetDays && bg.remainingDays < bg.budgetDays * 0.2 ? "text-[#faa61a]"
+                                      : "text-[#006284]"
+                                    }`}>
+                                      {bg.remainingDays}d
+                                    </span>
+                                  ) : <span className="text-[#e2e4e7]">-</span>}
                                 </TableCell>
                               </TableRow>
 
-                              {/* EMPLOYEE ROWS under project */}
-                              {projExpanded && projNode.employees.map((empEntry) => (
-                                <TableRow key={`${projNode.project.id}-${empEntry.employee!.id}`} className="border-b-[#e2e4e7] bg-[#f5f6f7]/50">
-                                  <TableCell className="pl-20">
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <span className="text-[#87d3df]">&bull;</span>
-                                      <span className="text-[#000]">{empEntry.employee!.name}</span>
-                                      <span className="text-[10px] text-[#747577]">({empEntry.employee!.role})</span>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell />
-                                  <TableCell />
-                                  <TableCell />
-                                  <TableCell className="text-center text-sm text-[#000]">{empEntry.days}d</TableCell>
-                                  <TableCell />
-                                </TableRow>
-                              ))}
+                              {/* PROJECT ROWS under budget */}
+                              {budgetExpanded && bg.projects.map((projNode) => {
+                                const projExpanded = expandedPVProjects.has(projNode.project.id);
+                                return (
+                                  <React.Fragment key={projNode.project.id}>
+                                    <TableRow
+                                      className={`border-b-[#e2e4e7] cursor-pointer transition-colors hover:bg-[#e8f7fa]/60 ${projExpanded ? "bg-[#fafbfc]" : "bg-white"}`}
+                                      onClick={() => togglePVProject(projNode.project.id)}
+                                    >
+                                      <TableCell className="pl-20">
+                                        <div className="flex items-center gap-2">
+                                          <svg className={`w-3 h-3 text-[#87d3df] transition-transform ${projExpanded ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                          </svg>
+                                          <span className="font-medium text-[#000]">{projNode.project.name}</span>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell />
+                                      <TableCell className="text-center text-sm text-[#000]">
+                                        {projNode.usedDays > 0 ? `${projNode.usedDays}d` : <span className="text-[#e2e4e7]">-</span>}
+                                      </TableCell>
+                                      <TableCell />
+                                      <TableCell className="text-center text-sm text-[#006284]">
+                                        {projNode.daysThisMonth > 0 ? `${projNode.daysThisMonth}d` : <span className="text-[#e2e4e7]">-</span>}
+                                      </TableCell>
+                                      <TableCell />
+                                    </TableRow>
 
-                              {projExpanded && projNode.employees.length === 0 && (
-                                <TableRow className="border-b-[#e2e4e7] bg-[#f5f6f7]/30">
-                                  <TableCell colSpan={6} className="text-center py-2 text-[#747577] text-xs pl-20">
-                                    No allocations this month.
-                                  </TableCell>
-                                </TableRow>
-                              )}
+                                    {/* EMPLOYEE ROWS under project */}
+                                    {projExpanded && projNode.employees.map((empEntry) => (
+                                      <TableRow key={`${projNode.project.id}-${empEntry.employee!.id}`} className="border-b-[#e2e4e7] bg-[#f5f6f7]/50">
+                                        <TableCell className="pl-28">
+                                          <div className="flex items-center gap-2 text-sm">
+                                            <span className="text-[#87d3df]">&bull;</span>
+                                            <span className="text-[#000]">{empEntry.employee!.name}</span>
+                                            <span className="text-[10px] text-[#747577]">({empEntry.employee!.role})</span>
+                                          </div>
+                                        </TableCell>
+                                        <TableCell />
+                                        <TableCell />
+                                        <TableCell />
+                                        <TableCell className="text-center text-sm text-[#000]">{empEntry.days}d</TableCell>
+                                        <TableCell />
+                                      </TableRow>
+                                    ))}
+
+                                    {projExpanded && projNode.employees.length === 0 && (
+                                      <TableRow className="border-b-[#e2e4e7] bg-[#f5f6f7]/30">
+                                        <TableCell colSpan={6} className="text-center py-2 text-[#747577] text-xs pl-28">
+                                          No allocations this month.
+                                        </TableCell>
+                                      </TableRow>
+                                    )}
+                                  </React.Fragment>
+                                );
+                              })}
                             </React.Fragment>
                           );
                         })}
+
+                        {/* UNASSIGNED PROJECTS (no budget) */}
+                        {clientExpanded && clientNode.unassignedProjects.length > 0 && (
+                          <>
+                            {clientNode.budgetGroups.length > 0 && (
+                              <TableRow className="border-b-[#e2e4e7] bg-[#fafbfc]">
+                                <TableCell className="pl-10" colSpan={6}>
+                                  <span className="text-xs font-semibold text-[#747577]">Unassigned Projects</span>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                            {clientNode.unassignedProjects.map((projNode) => {
+                              const projExpanded = expandedPVProjects.has(projNode.project.id);
+                              return (
+                                <React.Fragment key={projNode.project.id}>
+                                  <TableRow
+                                    className={`border-b-[#e2e4e7] cursor-pointer transition-colors hover:bg-[#e8f7fa]/60 ${projExpanded ? "bg-[#fafbfc]" : "bg-white"}`}
+                                    onClick={() => togglePVProject(projNode.project.id)}
+                                  >
+                                    <TableCell className="pl-10">
+                                      <div className="flex items-center gap-2">
+                                        <svg className={`w-3.5 h-3.5 text-[#87d3df] transition-transform ${projExpanded ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                        <span className="font-medium text-[#000]">{projNode.project.name}</span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {projNode.project.budgetDays != null ? (
+                                        <span className="font-medium text-[#000]">{projNode.project.budgetDays}d</span>
+                                      ) : <span className="text-[#e2e4e7]">-</span>}
+                                    </TableCell>
+                                    <TableCell className="text-center text-sm text-[#000]">
+                                      {projNode.usedDays > 0 ? `${projNode.usedDays}d` : <span className="text-[#e2e4e7]">-</span>}
+                                    </TableCell>
+                                    <TableCell />
+                                    <TableCell className="text-center text-sm text-[#006284]">
+                                      {projNode.daysThisMonth > 0 ? `${projNode.daysThisMonth}d` : <span className="text-[#e2e4e7]">-</span>}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {projNode.project.budgetDays != null ? (
+                                        <span className={`font-semibold ${
+                                          Math.round(projNode.project.budgetDays - projNode.usedDays) < 0 ? "text-red-600" : "text-[#006284]"
+                                        }`}>
+                                          {Math.round(projNode.project.budgetDays - projNode.usedDays)}d
+                                        </span>
+                                      ) : <span className="text-[#e2e4e7]">-</span>}
+                                    </TableCell>
+                                  </TableRow>
+
+                                  {projExpanded && projNode.employees.map((empEntry) => (
+                                    <TableRow key={`${projNode.project.id}-${empEntry.employee!.id}`} className="border-b-[#e2e4e7] bg-[#f5f6f7]/50">
+                                      <TableCell className="pl-20">
+                                        <div className="flex items-center gap-2 text-sm">
+                                          <span className="text-[#87d3df]">&bull;</span>
+                                          <span className="text-[#000]">{empEntry.employee!.name}</span>
+                                          <span className="text-[10px] text-[#747577]">({empEntry.employee!.role})</span>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell />
+                                      <TableCell />
+                                      <TableCell />
+                                      <TableCell className="text-center text-sm text-[#000]">{empEntry.days}d</TableCell>
+                                      <TableCell />
+                                    </TableRow>
+                                  ))}
+                                </React.Fragment>
+                              );
+                            })}
+                          </>
+                        )}
                       </React.Fragment>
                     );
                   })}

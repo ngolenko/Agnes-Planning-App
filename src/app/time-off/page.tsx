@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Employee, TimeOff, UnbillableTime } from "@/lib/types";
-import { formatMonthYear, getWorkingDaysInMonth } from "@/lib/dates";
+import { formatMonthYear, getWorkingDaysInMonth, getEmployeeWorkingDaysInMonth } from "@/lib/dates";
 
 interface EmployeeSummary {
   employee: Employee;
@@ -244,7 +244,8 @@ export default function TimeOffPage() {
             </TableHeader>
             <TableBody>
               {summaries.map((s, idx) => {
-                const availableDays = workingDays - s.totalOff;
+                const empWorkingDays = getEmployeeWorkingDaysInMonth(s.employee.weeklyCapacityDays, year, month, s.employee.country as "DE" | "RO" | undefined);
+                const availableDays = empWorkingDays - s.totalOff;
                 const isSelected = s.employee.id === selectedEmployeeId;
                 return (
                   <TableRow
@@ -283,8 +284,8 @@ export default function TimeOffPage() {
                       {s.totalOff > 0 ? `${s.totalOff}d` : "-"}
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className={`font-semibold ${availableDays < workingDays * 0.5 ? "text-[#faa61a]" : "text-[#006284]"}`}>
-                        {availableDays}d
+                      <span className={`font-semibold ${availableDays < empWorkingDays * 0.5 ? "text-[#faa61a]" : "text-[#006284]"}`}>
+                        {availableDays}d / {empWorkingDays}d
                       </span>
                     </TableCell>
                     <TableCell>
@@ -331,7 +332,7 @@ export default function TimeOffPage() {
             <CardContent className="space-y-4">
               <div>
                 <Label className="text-xs font-semibold text-[#000]">Type</Label>
-                <Select value={addType} onValueChange={setAddType}>
+                <Select value={addType} onValueChange={(v) => v && setAddType(v)}>
                   <SelectTrigger className="border-[#e2e4e7] focus:ring-[#87d3df] mt-1">
                     <SelectValue />
                   </SelectTrigger>

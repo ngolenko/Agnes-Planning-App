@@ -23,6 +23,7 @@ export interface Budget {
   clientId: string;
   budgetDays: number | null;
   fabricBudgetId: string | null;
+  lastInvoiceDate: string | null;
   isActive: boolean;
   client?: Client;
   projects?: Project[];

@@ -34,14 +34,15 @@ model Client {
 }
 
 model Budget {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   name            String
   clientId        String
   budgetDays      Float?
   fabricBudgetId  String?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  lastInvoiceDate DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   client   Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   projects Project[]

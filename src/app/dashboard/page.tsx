@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PlanningData } from "@/lib/types";
-import { getWorkingDaysInMonth, formatMonthYear } from "@/lib/dates";
+import { getEmployeeWorkingDaysInMonth, formatMonthYear } from "@/lib/dates";
 
 export default function DashboardPage() {
   const [data, setData] = useState<PlanningData | null>(null);
@@ -52,7 +52,7 @@ export default function DashboardPage() {
   }
 
   const totalCapacity = data.employees.reduce(
-    (sum, emp) => sum + getWorkingDaysInMonth(year, month, emp.country),
+    (sum, emp) => sum + getEmployeeWorkingDaysInMonth(emp.weeklyCapacityDays, year, month, emp.country),
     0
   );
   const totalTimeOff = data.timeOff.length;

@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PlanningData, Employee } from "@/lib/types";
-import { getWorkingDaysInMonth, formatMonthYear } from "@/lib/dates";
+import { getWorkingDaysInMonth, getEmployeeWorkingDaysInMonth, formatMonthYear } from "@/lib/dates";
 import { getEmployeeAvailableDays, daysToPercentage } from "@/lib/availability";
 
 export default function EmployeePage() {
@@ -88,7 +88,7 @@ export default function EmployeePage() {
     );
   }
 
-  const workingDays = getWorkingDaysInMonth(year, month, employee.country as "DE" | "RO");
+  const workingDays = getEmployeeWorkingDaysInMonth(employee.weeklyCapacityDays, year, month, employee.country as "DE" | "RO");
   const empTimeOff = data.timeOff.filter((t) => t.employeeId === employeeId);
   const empUnbillable = data.unbillable.filter((u) => u.employeeId === employeeId);
   const empAllocations = data.allocations.filter((a) => a.employeeId === employeeId);

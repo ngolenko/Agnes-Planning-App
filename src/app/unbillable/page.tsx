@@ -117,7 +117,7 @@ export default function UnbillablePage() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl" style={{ fontFamily: "var(--font-poppins)" }}>Unbillable Time</h2>
         <div className="flex items-center gap-4">
-          <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
+          <Select value={selectedEmployeeId} onValueChange={(v) => v && setSelectedEmployeeId(v)}>
             <SelectTrigger className="w-[200px] border-[#e2e4e7] focus:ring-[#87d3df]">
               <SelectValue placeholder="Select employee..." />
             </SelectTrigger>
