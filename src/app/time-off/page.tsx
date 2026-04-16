@@ -53,9 +53,9 @@ export default function TimeOffPage() {
 
   const fetchData = useCallback(async () => {
     const [empRes, toRes, ubRes] = await Promise.all([
-      fetch("/api/employees"),
-      fetch(`/api/time-off?startDate=${startDate}&endDate=${endDate}`),
-      fetch(`/api/unbillable?startDate=${startDate}&endDate=${endDate}`),
+      fetch("/api/employees", { cache: "no-store" }),
+      fetch(`/api/time-off?startDate=${startDate}&endDate=${endDate}`, { cache: "no-store" }),
+      fetch(`/api/unbillable?startDate=${startDate}&endDate=${endDate}`, { cache: "no-store" }),
     ]);
     setEmployees(await empRes.json());
     setTimeOff(await toRes.json());
@@ -70,13 +70,15 @@ export default function TimeOffPage() {
   const fetchEmployeeDetail = useCallback(async () => {
     if (!selectedEmployeeId) return;
     const res = await fetch(
-      `/api/time-off?employeeId=${selectedEmployeeId}&startDate=${startDate}&endDate=${endDate}`
+      `/api/time-off?employeeId=${selectedEmployeeId}&startDate=${startDate}&endDate=${endDate}`,
+      { cache: "no-store" }
     );
     setEmployeeTimeOff(await res.json());
 
     // Load unbillable total for this employee this month
     const ubRes = await fetch(
-      `/api/unbillable?employeeId=${selectedEmployeeId}&startDate=${startDate}&endDate=${endDate}`
+      `/api/unbillable?employeeId=${selectedEmployeeId}&startDate=${startDate}&endDate=${endDate}`,
+      { cache: "no-store" }
     );
     const ubData: UnbillableTime[] = await ubRes.json();
     setUnbillableDays(ubData.reduce((s, u) => s + u.plannedDays, 0));
@@ -129,15 +131,13 @@ export default function TimeOffPage() {
     });
     setAddStartDate("");
     setAddEndDate("");
+    await Promise.all([fetchEmployeeDetail(), fetchData()]);
     setSaving(false);
-    fetchEmployeeDetail();
-    fetchData();
   };
 
   const handleDeleteTimeOff = async (id: string) => {
     await fetch(`/api/time-off/${id}`, { method: "DELETE" });
-    fetchEmployeeDetail();
-    fetchData();
+    await Promise.all([fetchEmployeeDetail(), fetchData()]);
   };
 
   const handleSaveUnbillable = async () => {
@@ -160,7 +160,7 @@ export default function TimeOffPage() {
         plannedDays: unbillableDays,
       }),
     });
-    fetchData();
+    await Promise.all([fetchEmployeeDetail(), fetchData()]);
   };
 
   const selectEmployee = (empId: string) => {
@@ -275,17 +275,17 @@ export default function TimeOffPage() {
                     </TableCell>
                     <TableCell className="text-center">
                       {s.unbillable > 0 ? (
-                        <Badge className="bg-[#87d3df]/20 text-[#006284] border-0">{s.unbillable}d</Badge>
+                        <Badge className="bg-[#87d3df]/20 text-[#006284] border-0">{Number(s.unbillable.toFixed(1))}d</Badge>
                       ) : (
                         <span className="text-[#e2e4e7]">-</span>
                       )}
                     </TableCell>
                     <TableCell className="text-center font-semibold text-[#000]">
-                      {s.totalOff > 0 ? `${s.totalOff}d` : "-"}
+                      {s.totalOff > 0 ? `${Number(s.totalOff.toFixed(1))}d` : "-"}
                     </TableCell>
                     <TableCell className="text-center">
                       <span className={`font-semibold ${availableDays < empWorkingDays * 0.5 ? "text-[#faa61a]" : "text-[#006284]"}`}>
-                        {availableDays}d / {empWorkingDays}d
+                        {Number(availableDays.toFixed(1))}d / {empWorkingDays}d
                       </span>
                     </TableCell>
                     <TableCell>

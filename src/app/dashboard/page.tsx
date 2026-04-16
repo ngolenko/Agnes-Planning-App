@@ -56,10 +56,11 @@ export default function DashboardPage() {
     0
   );
   const totalTimeOff = data.timeOff.length;
-  const totalUnbillable = Math.round(data.unbillable.reduce((s, u) => s + u.plannedDays, 0));
+  const totalUnbillableRaw = data.unbillable.reduce((s, u) => s + u.plannedDays, 0);
+  const totalUnbillable = Number(totalUnbillableRaw.toFixed(1));
   const totalBillable = Math.round(data.allocations.reduce((s, a) => s + a.plannedDays, 0));
-  const billableCapacity = totalCapacity - totalTimeOff - totalUnbillable;
-  const utilization = billableCapacity > 0 ? Math.round((totalBillable / billableCapacity) * 100) : 0;
+  const totalAvailability = Math.max(0, totalCapacity - totalTimeOff - totalUnbillableRaw);
+  const utilization = totalAvailability > 0 ? Math.round((totalBillable / totalAvailability) * 100) : 0;
 
   // Per-client data with percentage breakdown
   const clientData = (data.clients || []).map((client) => {
@@ -152,11 +153,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="border-[#e2e4e7] shadow-sm border-l-4 border-l-[#006284]">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        <Card className="border-[#e2e4e7] shadow-sm border-l-4 border-l-[#006284]" title="Working days in the month across all employees (before time off / unbillable).">
           <CardContent className="pt-5 pb-4">
             <div className="text-2xl font-bold text-[#000]" style={{ fontFamily: "var(--font-poppins)" }}>{totalCapacity}d</div>
-            <div className="text-xs text-[#747577]">Total Capacity</div>
+            <div className="text-xs text-[#747577]">Capacity</div>
           </CardContent>
         </Card>
         <Card className="border-[#e2e4e7] shadow-sm border-l-4 border-l-[#faa61a]">
@@ -171,13 +172,22 @@ export default function DashboardPage() {
             <div className="text-xs text-[#747577]">Unbillable</div>
           </CardContent>
         </Card>
+        <Card className="border-[#e2e4e7] shadow-sm border-l-4 border-l-[#006284]" title={`Availability = Capacity − Time Off − Unbillable = ${totalCapacity} − ${totalTimeOff} − ${totalUnbillable}`}>
+          <CardContent className="pt-5 pb-4">
+            <div className="text-2xl font-bold text-[#000]" style={{ fontFamily: "var(--font-poppins)" }}>{Number(totalAvailability.toFixed(1))}d</div>
+            <div className="text-xs text-[#747577]">Availability</div>
+          </CardContent>
+        </Card>
         <Card className="border-[#e2e4e7] shadow-sm border-l-4 border-l-[#006284]">
           <CardContent className="pt-5 pb-4">
             <div className="text-2xl font-bold text-[#006284]" style={{ fontFamily: "var(--font-poppins)" }}>{totalBillable}d</div>
             <div className="text-xs text-[#747577]">Billable Planned</div>
           </CardContent>
         </Card>
-        <Card className={`border-[#e2e4e7] shadow-sm border-l-4 ${utilization > 100 ? "border-l-red-500" : utilization >= 80 ? "border-l-[#006284]" : "border-l-[#faa61a]"}`}>
+        <Card
+          className={`border-[#e2e4e7] shadow-sm border-l-4 ${utilization > 100 ? "border-l-red-500" : utilization >= 80 ? "border-l-[#006284]" : "border-l-[#faa61a]"}`}
+          title={`Utilization = Billable Planned / Availability = ${totalBillable} / ${Number(totalAvailability.toFixed(1))}`}
+        >
           <CardContent className="pt-5 pb-4">
             <div className={`text-2xl font-bold ${utilization > 100 ? "text-red-600" : utilization >= 80 ? "text-[#006284]" : "text-[#faa61a]"}`} style={{ fontFamily: "var(--font-poppins)" }}>
               {utilization}%

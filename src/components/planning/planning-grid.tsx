@@ -509,28 +509,39 @@ export function PlanningGrid() {
                 ))}
 
                 {/* Totals row */}
-                <TableRow className="border-t-2 border-[#006284] bg-[#f5f6f7]">
-                  <TableCell className="sticky left-0 bg-[#f5f6f7] z-10">
-                    <span className="font-bold text-[#000]" style={{ fontFamily: "var(--font-poppins)" }}>Total</span>
-                  </TableCell>
-                  <TableCell />
-                  {clientsWithProjects.map((client) => {
-                    const clientProjectIds = new Set(client.projects?.map((p) => p.id) || []);
-                    const totalClientDays = Math.round(
-                      data.allocations
-                        .filter((a) => clientProjectIds.has(a.projectId))
-                        .reduce((s, a) => s + a.plannedDays, 0)
-                    );
-                    return (
-                      <TableCell key={client.id} className="text-center">
-                        <span className="font-bold text-[#006284]">{totalClientDays}d</span>
+                {(() => {
+                  const totalAvailable = matrix.reduce((s, r) => s + r.availDays, 0);
+                  const totalOverallPct = totalAvailable > 0 ? Math.round((totalPlanned / totalAvailable) * 100) : 0;
+                  return (
+                    <TableRow className="border-t-2 border-[#006284] bg-[#f5f6f7]">
+                      <TableCell className="sticky left-0 bg-[#f5f6f7] z-10">
+                        <span className="font-bold text-[#000]" style={{ fontFamily: "var(--font-poppins)" }}>Total</span>
                       </TableCell>
-                    );
-                  })}
-                  <TableCell className="text-center font-bold text-[#006284] sticky right-0 bg-[#f5f6f7] z-10">
-                    {Math.round(totalPlanned)}d
-                  </TableCell>
-                </TableRow>
+                      <TableCell className="text-center font-bold text-[#747577]">
+                        {Math.round(totalAvailable)}d
+                      </TableCell>
+                      {clientsWithProjects.map((client) => {
+                        const clientProjectIds = new Set(client.projects?.map((p) => p.id) || []);
+                        const totalClientDays = Math.round(
+                          data.allocations
+                            .filter((a) => clientProjectIds.has(a.projectId))
+                            .reduce((s, a) => s + a.plannedDays, 0)
+                        );
+                        return (
+                          <TableCell key={client.id} className="text-center">
+                            <span className="font-bold text-[#006284]">{totalClientDays}d</span>
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell className="text-center sticky right-0 bg-[#f5f6f7] z-10">
+                        <span className={`font-bold ${totalOverallPct > 100 ? "text-red-600" : totalOverallPct >= 80 ? "text-[#006284]" : "text-[#faa61a]"}`}>
+                          {totalOverallPct}%
+                        </span>
+                        <div className="text-[10px] font-normal text-[#747577]">{Math.round(totalPlanned)}d</div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })()}
 
                 {matrix.length === 0 && (
                   <TableRow>
@@ -560,7 +571,7 @@ export function PlanningGrid() {
               <TableHeader>
                 <TableRow className="border-b-[#e2e4e7] bg-[#f5f6f7]">
                   <TableHead className="font-semibold text-[#000] w-[350px]">Person / Client / Project</TableHead>
-                  <TableHead className="text-center font-semibold text-[#000] w-[100px]">Alloc %</TableHead>
+                  <TableHead className="text-center font-semibold text-[#000] w-[100px]">Utilization</TableHead>
                   <TableHead className="text-center font-semibold text-[#000] w-[120px]">Days</TableHead>
                   <TableHead className="text-center font-semibold text-[#000] w-[100px]">Available</TableHead>
                   <TableHead className="text-center font-semibold text-[#000] w-[100px]">Remaining</TableHead>
@@ -590,10 +601,16 @@ export function PlanningGrid() {
                             <span className="text-[#747577] text-xs">({empNode.employee.role})</span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-center">
-                          <span className={`font-bold text-sm ${empNode.allocPercent > 100 ? "text-red-600" : "text-[#006284]"}`}>
+                        <TableCell
+                          className="text-center"
+                          title={`Utilization = ${Math.round(empNode.allocatedDays)}d planned / ${empNode.availDays}d available`}
+                        >
+                          <span className={`font-bold text-sm ${empNode.allocPercent > 100 ? "text-red-600" : empNode.allocPercent >= 80 ? "text-[#006284]" : "text-[#faa61a]"}`}>
                             {empNode.allocPercent}%
                           </span>
+                          <div className="text-[10px] font-normal text-[#747577]">
+                            {Math.round(empNode.allocatedDays)}/{empNode.availDays}d
+                          </div>
                         </TableCell>
                         <TableCell className="text-center font-bold text-[#006284]">
                           {Math.round(empNode.allocatedDays)}d

@@ -22,9 +22,11 @@ interface BudgetWithAllocations extends Budget {
   invoicedSoFar: number;
   sinceLastInvoice: number;
   plannedThisMonth: number;
+  totalUsed: number;
   projectInvoiced: Map<string, number>;
   projectSinceLastInvoice: Map<string, number>;
   projectPlannedThisMonth: Map<string, number>;
+  projectTotalUsed: Map<string, number>;
 }
 
 export default function BudgetsPage() {
@@ -53,16 +55,20 @@ export default function BudgetsPage() {
       const projectInvoiced = new Map<string, number>();
       const projectSinceLastInvoice = new Map<string, number>();
       const projectPlannedThisMonth = new Map<string, number>();
+      const projectTotalUsed = new Map<string, number>();
 
       for (const pid of projectIds) {
         let invoiced = 0;
         let since = 0;
         let thisMonth = 0;
+        let total = 0;
 
         for (const a of allocationsData) {
           if (a.projectId !== pid) continue;
           const ws = typeof a.weekStartDate === "string" ? a.weekStartDate : (a.weekStartDate as Date).toISOString();
           const wsDate = new Date(ws);
+
+          total += a.plannedDays;
 
           // Invoiced: allocations up to lastInvoiceDate (if set)
           if (lastInvoiceDate && wsDate <= lastInvoiceDate) {
@@ -83,13 +89,15 @@ export default function BudgetsPage() {
         projectInvoiced.set(pid, invoiced);
         projectSinceLastInvoice.set(pid, since);
         projectPlannedThisMonth.set(pid, thisMonth);
+        projectTotalUsed.set(pid, total);
       }
 
       const invoicedSoFar = projectIds.reduce((s, pid) => s + (projectInvoiced.get(pid) || 0), 0);
       const sinceLastInvoice = projectIds.reduce((s, pid) => s + (projectSinceLastInvoice.get(pid) || 0), 0);
       const plannedThisMonth = projectIds.reduce((s, pid) => s + (projectPlannedThisMonth.get(pid) || 0), 0);
+      const totalUsed = projectIds.reduce((s, pid) => s + (projectTotalUsed.get(pid) || 0), 0);
 
-      return { ...b, invoicedSoFar, sinceLastInvoice, plannedThisMonth, projectInvoiced, projectSinceLastInvoice, projectPlannedThisMonth };
+      return { ...b, invoicedSoFar, sinceLastInvoice, plannedThisMonth, totalUsed, projectInvoiced, projectSinceLastInvoice, projectPlannedThisMonth, projectTotalUsed };
     });
 
     setBudgets(enriched);
@@ -135,7 +143,8 @@ export default function BudgetsPage() {
   const totalInvoiced = Math.round(budgets.reduce((s, b) => s + b.invoicedSoFar, 0));
   const totalSinceLastInvoice = Math.round(budgets.reduce((s, b) => s + b.sinceLastInvoice, 0));
   const totalPlannedThisMonth = Math.round(budgets.reduce((s, b) => s + b.plannedThisMonth, 0));
-  const totalRemaining = totalBudgetDays - totalInvoiced - totalSinceLastInvoice;
+  const totalAllUsed = Math.round(budgets.reduce((s, b) => s + b.totalUsed, 0));
+  const totalRemaining = totalBudgetDays - totalAllUsed;
 
   const toggleBudget = (id: string) => {
     setExpandedBudgets((prev) => {
@@ -261,7 +270,7 @@ export default function BudgetsPage() {
                     </TableHeader>
                     <TableBody>
                       {clientBudgets.map((budget) => {
-                        const remaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budget.invoicedSoFar - budget.sinceLastInvoice) : null;
+                        const remaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budget.totalUsed) : null;
                         const isExpanded = expandedBudgets.has(budget.id);
                         return (
                           <React.Fragment key={budget.id}>

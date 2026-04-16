@@ -36,33 +36,46 @@ export async function POST(request: NextRequest) {
 
   // Support batch creation with startDate + endDate range
   if (body.startDate && body.endDate) {
-    const start = new Date(body.startDate);
-    const end = new Date(body.endDate);
+    // Parse YYYY-MM-DD inputs deterministically as UTC midnight, so
+    // the iteration/weekday-check and storage ISO strings don't drift
+    // across server/client timezones.
+    const parseUTC = (v: string): Date => {
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v);
+      if (m) {
+        return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+      }
+      const d = new Date(v);
+      return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    };
+
+    const start = parseUTC(body.startDate);
+    const end = parseUTC(body.endDate);
     const created = [];
 
     const current = new Date(start);
-    while (current <= end) {
-      const dow = current.getDay();
+    while (current.getTime() <= end.getTime()) {
+      const dow = current.getUTCDay();
       // Skip weekends
       if (dow !== 0 && dow !== 6) {
+        const isoDate = new Date(current.getTime());
         const result = await prisma.timeOff.upsert({
           where: {
             employeeId_date: {
               employeeId: body.employeeId,
-              date: new Date(current),
+              date: isoDate,
             },
           },
           update: { type: body.type, status: body.status || "planned" },
           create: {
             employeeId: body.employeeId,
-            date: new Date(current),
+            date: isoDate,
             type: body.type,
             status: body.status || "planned",
           },
         });
         created.push(result);
       }
-      current.setDate(current.getDate() + 1);
+      current.setUTCDate(current.getUTCDate() + 1);
     }
     return NextResponse.json(created, { status: 201 });
   }

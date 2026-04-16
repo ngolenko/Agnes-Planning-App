@@ -239,6 +239,16 @@ export default function ManagePage() {
     );
   };
 
+  // Helper: total allocations ever for a budget (used for remaining calculation)
+  const getBudgetTotalUsed = (budget: Budget) => {
+    const budgetProjects = getProjectsForBudget(budget.id);
+    return Math.round(
+      allocations
+        .filter((a) => budgetProjects.some((p) => p.id === a.projectId))
+        .reduce((s, a) => s + a.plannedDays, 0)
+    );
+  };
+
   // Helper: allocations since last invoice for a project within a budget
   const getProjectSinceLastInvoice = (projectId: string, budget: Budget) => {
     const lastInvoiceDate = budget.lastInvoiceDate ? new Date(budget.lastInvoiceDate) : null;
@@ -398,7 +408,8 @@ export default function ManagePage() {
                       const budgetInvoiced = getBudgetInvoicedDays(budget);
                       const budgetSinceInvoice = getBudgetSinceLastInvoice(budget);
                       const budgetPlannedMonth = getBudgetPlannedThisMonth(budget.id);
-                      const budgetRemaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budgetInvoiced - budgetSinceInvoice) : null;
+                      const budgetTotalUsed = getBudgetTotalUsed(budget);
+                      const budgetRemaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budgetTotalUsed) : null;
                       const budgetProjectsList = getProjectsForBudget(budget.id);
 
                       return (
