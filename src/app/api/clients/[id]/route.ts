@@ -1,16 +1,15 @@
-// @ts-nocheck
-import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const body = await request.json();
-  const client = await prisma.client.update({ where: { id }, data: body });
-  return NextResponse.json(client);
+export async function PUT() {
+  return NextResponse.json(
+    { error: "Customer edits are not available — customers are managed in BudgetApp." },
+    { status: 501 }
+  );
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  await prisma.client.delete({ where: { id } });
-  return NextResponse.json({ success: true });
+export async function DELETE() {
+  return NextResponse.json(
+    { error: "Customer deletes are not available — customers are managed in BudgetApp." },
+    { status: 501 }
+  );
 }

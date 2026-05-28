@@ -1,18 +1,23 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "sqlserver"
   url      = env("DATABASE_URL")
+  schemas  = ["ai", "budget"]
 }
+
+// ── ai schema (Agnes-owned, writable) ────────────────────────────────
 
 model Employee {
   id                 String   @id @default(cuid())
   name               String
   email              String   @unique
   role               String   @default("")
-  country            String   @default("DE") // "DE" or "RO"
+  country            String   @default("DE")
   weeklyCapacityDays Float    @default(5)
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
@@ -21,83 +26,46 @@ model Employee {
   allocations    Allocation[]
   timeOff        TimeOff[]
   unbillableTime UnbillableTime[]
-}
 
-model Client {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  projects Project[]
-  budgets  Budget[]
-}
-
-model Budget {
-  id              String    @id @default(cuid())
-  name            String
-  clientId        String
-  budgetDays      Float?
-  fabricBudgetId  String?
-  lastInvoiceDate DateTime?
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  client   Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  projects Project[]
-}
-
-model Project {
-  id              String   @id @default(cuid())
-  name            String
-  clientId        String
-  budgetId        String?
-  fabricProjectId String?
-  budgetDays      Float?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  budget      Budget?      @relation(fields: [budgetId], references: [id], onDelete: SetNull)
-  allocations Allocation[]
+  @@schema("ai")
 }
 
 model Allocation {
   id            String   @id @default(cuid())
   employeeId    String
-  projectId     String
-  weekStartDate DateTime
+  projectId     Int
+  weekStartDate DateTime @db.Date
   plannedDays   Float
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  employee Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  project  BudgetProject @relation(fields: [projectId], references: [id])
 
   @@unique([employeeId, projectId, weekStartDate])
+  @@schema("ai")
 }
 
 model TimeOff {
   id         String   @id @default(cuid())
   employeeId String
-  date       DateTime
-  type       String // vacation, sick, public_holiday
-  status     String   @default("planned") // planned, confirmed
+  date       DateTime @db.Date
+  type       String
+  status     String   @default("planned")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, date])
+  @@schema("ai")
 }
 
 model UnbillableTime {
   id            String   @id @default(cuid())
   employeeId    String
-  weekStartDate DateTime
-  category      String // internal, training, bench, admin
+  weekStartDate DateTime @db.Date
+  category      String
   plannedDays   Float
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -105,4 +73,70 @@ model UnbillableTime {
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, weekStartDate, category])
+  @@schema("ai")
+}
+
+// ── budget schema (BudgetApp-owned, read-only from Agnes) ────────────
+
+model BudgetCustomer {
+  id           Int     @id @map("Id")
+  customerName String? @map("CustomerName") @db.NVarChar(255)
+  isActive     Boolean @default(true) @map("IsActive")
+
+  budgets  BudgetRecord[]
+  projects BudgetProject[]
+
+  @@map("Customer")
+  @@schema("budget")
+}
+
+model BudgetRecord {
+  id           Int       @id @default(autoincrement()) @map("Id")
+  customerId   Int       @map("CustomerId")
+  name         String    @map("Name") @db.NVarChar(50)
+  externalName String?   @map("ExternalName") @db.NVarChar(50)
+  startDate    DateTime? @map("StartDate")
+  endDate      DateTime? @map("EndDate")
+  budgetH      Decimal?  @map("BudgetH") @db.Decimal(18, 2)
+  budgetEur    Decimal?  @map("BudgetEUR") @db.Decimal(18, 2)
+
+  customer BudgetCustomer     @relation(fields: [customerId], references: [id])
+  mappings MapBudgetProject[]
+
+  @@map("Budget")
+  @@schema("budget")
+}
+
+model BudgetProject {
+  id              Int       @id @map("Id")
+  customerId      Int?      @map("CustomerId")
+  projectName     String?   @map("ProjectName") @db.NVarChar(255)
+  // computed column — never include in create/update data payloads
+  lastInvoiceDate DateTime? @map("LastInvoiceDate") @db.Date
+  projectType     String    @map("ProjectType") @db.NVarChar(32) @default("Time & Materials")
+  isActive        Boolean   @default(true) @map("IsActive")
+
+  customer    BudgetCustomer?    @relation(fields: [customerId], references: [id])
+  allocations Allocation[]
+  mappings    MapBudgetProject[]
+
+  @@map("Project")
+  @@schema("budget")
+}
+
+model MapBudgetProject {
+  budgetId            Int       @map("BudgetId")
+  projectId           Int       @map("ProjectId")
+  projectBudgetH      Decimal?  @map("ProjectBudgetH") @db.Decimal(18, 2)
+  projectBudgetEur    Decimal?  @map("ProjectBudgetEUR") @db.Decimal(18, 2)
+  allocationStartDate DateTime? @map("AllocationStartDate") @db.Date
+  allocationEndDate   DateTime? @map("AllocationEbdDate") @db.Date
+  priority            Int?      @map("Priority")
+
+  budget  BudgetRecord  @relation(fields: [budgetId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  project BudgetProject @relation(fields: [projectId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  @@id([budgetId, projectId])
+  @@map("Map_Budget_Project")
+  @@schema("budget")
 }

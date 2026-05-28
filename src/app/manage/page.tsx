@@ -40,6 +40,8 @@ export default function ManagePage() {
   const [showProjectDialog, setShowProjectDialog] = useState(false);
   const [showBudgetDialog, setShowBudgetDialog] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
 
   // Form state
   const [empName, setEmpName] = useState("");
@@ -272,6 +274,24 @@ export default function ManagePage() {
     fetchData();
   };
 
+  const syncIntervals = async () => {
+    setIsSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch("/api/sync-intervals-status", { method: "POST" });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setSyncResult(
+        `Synced — ${data.projects.total} projects (${data.projects.inactive} inactive), ${data.clients.total} clients (${data.clients.inactive} inactive)`
+      );
+      fetchData();
+    } catch (e) {
+      setSyncResult(`Sync failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   // Filtered budgets for project dialog based on selected client
   const budgetsForProjectDialog = projClientId ? getBudgetsForClient(projClientId) : [];
 
@@ -362,11 +382,27 @@ export default function ManagePage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle style={{ fontFamily: "var(--font-poppins)" }}>Clients, Budgets & Projects</CardTitle>
-            <p className="text-xs text-[#747577] mt-1">
-              Will sync from Fabric once connected. Manual entries below for now.
-            </p>
+            {syncResult && (
+              <p className={`text-xs mt-1 ${syncResult.startsWith("Sync failed") ? "text-red-500" : "text-[#006284]"}`}>
+                {syncResult}
+              </p>
+            )}
+            {!syncResult && (
+              <p className="text-xs text-[#747577] mt-1">
+                Synced from MyIntervals via BudgetApp.
+              </p>
+            )}
           </div>
           <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-[#747577] text-[#747577] hover:bg-[#747577]/10"
+              onClick={syncIntervals}
+              disabled={isSyncing}
+            >
+              {isSyncing ? "Syncing…" : "Sync from Intervals"}
+            </Button>
             <Button size="sm" variant="outline" className="border-[#006284] text-[#006284] hover:bg-[#006284]/10" onClick={() => setShowClientDialog(true)}>
               + Add Client
             </Button>

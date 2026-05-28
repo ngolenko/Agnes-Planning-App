@@ -26,7 +26,7 @@ import {
   Client,
   Project,
 } from "@/lib/types";
-import { getWorkingDaysInMonth, getEmployeeWorkingDaysInMonth, formatMonthYear } from "@/lib/dates";
+import { getWorkingDaysInMonth, getEmployeeWorkingDaysInMonth, formatMonthYear, getWeekStartDate } from "@/lib/dates";
 import type { CountryCode } from "@/lib/types";
 import {
   getEmployeeAvailableDays,
@@ -40,6 +40,11 @@ export function PlanningGrid() {
   const [month, setMonth] = useState(new Date().getMonth());
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"client" | "resource" | "project">("client");
+  const [planningMode, setPlanningMode] = useState<"monthly" | "weekly">("monthly");
+  const [weekStart, setWeekStart] = useState<string>(() => {
+    const monday = getWeekStartDate(new Date());
+    return monday.toISOString().split("T")[0];
+  });
 
   // Percentage overrides: stores user-entered percentages keyed by "empId::clientId"
   // This is the source of truth for display — percentages are never back-calculated from days
@@ -53,7 +58,6 @@ export function PlanningGrid() {
   const [newProjectDays, setNewProjectDays] = useState("");
   const [addingClientTo, setAddingClientTo] = useState<string | null>(null);
   const [newClientId, setNewClientId] = useState("");
-  const [newClientPercent, setNewClientPercent] = useState("");
 
   // Project view state
   const [expandedPVClients, setExpandedPVClients] = useState<Set<string>>(new Set());
@@ -62,10 +66,13 @@ export function PlanningGrid() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/planning?year=${year}&month=${month}`, { cache: "no-store" });
+    const url = planningMode === "weekly"
+      ? `/api/planning?weekStart=${weekStart}`
+      : `/api/planning?year=${year}&month=${month}`;
+    const res = await fetch(url, { cache: "no-store" });
     setData(await res.json());
     setLoading(false);
-  }, [year, month]);
+  }, [year, month, planningMode, weekStart]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -76,6 +83,21 @@ export function PlanningGrid() {
   const nextMonth = () => {
     if (month === 11) { setMonth(0); setYear(year + 1); }
     else setMonth(month + 1);
+  };
+
+  const prevWeek = () => {
+    const d = new Date(weekStart + "T00:00:00.000Z");
+    d.setUTCDate(d.getUTCDate() - 7);
+    setWeekStart(d.toISOString().split("T")[0]);
+  };
+  const nextWeek = () => {
+    const d = new Date(weekStart + "T00:00:00.000Z");
+    d.setUTCDate(d.getUTCDate() + 7);
+    setWeekStart(d.toISOString().split("T")[0]);
+  };
+  const formatWeekLabel = (iso: string) => {
+    const d = new Date(iso + "T00:00:00.000Z");
+    return `Week of ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`;
   };
 
   if (loading || !data) {
@@ -138,7 +160,7 @@ export function PlanningGrid() {
           body: JSON.stringify({
             employeeId,
             projectId,
-            weekStartDate: mondays[i].toISOString(),
+            weekStartDate: mondays[i].toISOString().split("T")[0],
             plannedDays: thisWeek,
           }),
         });
@@ -269,7 +291,7 @@ export function PlanningGrid() {
       const clientMap = new Map<string, { client: Client; projects: { project: Project; days: number }[]; totalDays: number }>();
 
       for (const alloc of empAllocs) {
-        const proj = data.projects.find((p) => p.id === alloc.projectId);
+        const proj = alloc.project;
         if (!proj || !proj.client) continue;
         const clientId = proj.client.id;
         if (!clientMap.has(clientId)) {
@@ -319,18 +341,14 @@ export function PlanningGrid() {
     setNewProjectDays("");
   }
 
-  async function handleAddClientAllocation(employeeId: string) {
-    if (!newClientId) return;
-    const avail = getEmployeeAvail(employeeId);
-    const pct = parseFloat(newClientPercent) || 0;
-    const days = percentageToDays(pct, avail);
-    const client = data!.clients.find((c) => c.id === newClientId);
-    if (!client || !client.projects || client.projects.length === 0) return;
-    const firstProject = client.projects[0];
-    await savePersonAllocation(employeeId, firstProject.id, days);
+  async function handleAddEmployeeAllocation(employeeId: string) {
+    if (!newProjectId) return;
+    const days = Math.round(parseFloat(newProjectDays) || 5);
+    await savePersonAllocation(employeeId, newProjectId, days);
     setAddingClientTo(null);
     setNewClientId("");
-    setNewClientPercent("");
+    setNewProjectId("");
+    setNewProjectDays("");
   }
 
   // ── Render ──
@@ -342,19 +360,51 @@ export function PlanningGrid() {
         <div>
           <h2 className="text-2xl" style={{ fontFamily: "var(--font-poppins)" }}>Resource Planning</h2>
           <p className="text-sm text-[#747577] mt-1">
-            {(() => {
-              const countries = new Set(data.employees.filter((e) => e.isActive).map((e) => e.country));
-              if (countries.size <= 1) {
-                const country = (data.employees.find((e) => e.isActive)?.country as CountryCode) || "DE";
-                return `${getWorkingDaysInMonth(year, month, country)} working days`;
-              }
-              const deCounts = getWorkingDaysInMonth(year, month, "DE");
-              const roCounts = getWorkingDaysInMonth(year, month, "RO");
-              return `${Math.min(deCounts, roCounts)}-${Math.max(deCounts, roCounts)} working days`;
-            })()} &middot; {Math.round(totalPlanned)}d planned &middot; {formatMonthYear(year, month)}
+            {planningMode === "weekly" ? (
+              <>{formatWeekLabel(weekStart)} &middot; {Math.round(totalPlanned)}d planned</>
+            ) : (
+              <>
+                {(() => {
+                  const countries = new Set(data.employees.filter((e) => e.isActive).map((e) => e.country));
+                  if (countries.size <= 1) {
+                    const country = (data.employees.find((e) => e.isActive)?.country as CountryCode) || "DE";
+                    return `${getWorkingDaysInMonth(year, month, country)} working days`;
+                  }
+                  const deCounts = getWorkingDaysInMonth(year, month, "DE");
+                  const roCounts = getWorkingDaysInMonth(year, month, "RO");
+                  return `${Math.min(deCounts, roCounts)}-${Math.max(deCounts, roCounts)} working days`;
+                })()} &middot; {Math.round(totalPlanned)}d planned &middot; {formatMonthYear(year, month)}
+              </>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-4">
+          {/* Planning Mode Toggle */}
+          <div className="flex rounded-md border border-[#e2e4e7] overflow-hidden">
+            <button
+              onClick={() => setPlanningMode("monthly")}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                planningMode === "monthly"
+                  ? "bg-[#006284] text-white"
+                  : "bg-white text-[#747577] hover:bg-[#e8f7fa] hover:text-[#006284]"
+              }`}
+              style={{ fontFamily: "var(--font-poppins)" }}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setPlanningMode("weekly")}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors border-l border-[#e2e4e7] ${
+                planningMode === "weekly"
+                  ? "bg-[#006284] text-white"
+                  : "bg-white text-[#747577] hover:bg-[#e8f7fa] hover:text-[#006284]"
+              }`}
+              style={{ fontFamily: "var(--font-poppins)" }}
+            >
+              Weekly
+            </button>
+          </div>
+
           {/* View Toggle */}
           <div className="flex rounded-md border border-[#e2e4e7] overflow-hidden">
             <button
@@ -392,15 +442,15 @@ export function PlanningGrid() {
             </button>
           </div>
 
-          {/* Month navigation */}
+          {/* Period navigation */}
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={prevMonth} className="border-[#e2e4e7] hover:bg-[#e8f7fa] hover:text-[#006284]">
+            <Button variant="outline" size="sm" onClick={planningMode === "weekly" ? prevWeek : prevMonth} className="border-[#e2e4e7] hover:bg-[#e8f7fa] hover:text-[#006284]">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
             </Button>
-            <span className="font-semibold min-w-[160px] text-center text-[#000]" style={{ fontFamily: "var(--font-poppins)" }}>
-              {formatMonthYear(year, month)}
+            <span className="font-semibold min-w-[180px] text-center text-[#000]" style={{ fontFamily: "var(--font-poppins)" }}>
+              {planningMode === "weekly" ? formatWeekLabel(weekStart) : formatMonthYear(year, month)}
             </span>
-            <Button variant="outline" size="sm" onClick={nextMonth} className="border-[#e2e4e7] hover:bg-[#e8f7fa] hover:text-[#006284]">
+            <Button variant="outline" size="sm" onClick={planningMode === "weekly" ? nextWeek : nextMonth} className="border-[#e2e4e7] hover:bg-[#e8f7fa] hover:text-[#006284]">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
             </Button>
           </div>
@@ -777,46 +827,60 @@ export function PlanningGrid() {
                         );
                       })}
 
-                      {/* Add client allocation row */}
+                      {/* Add allocation row — client + project + days */}
                       {empExpanded && addingClientTo === empNode.employee.id && (
                         <TableRow className="border-b-[#e2e4e7] bg-[#e8f7fa]/30">
                           <TableCell className="pl-10">
-                            <Select value={newClientId} onValueChange={(v) => setNewClientId(v ?? "")}>
-                              <SelectTrigger className="border-[#e2e4e7] w-[180px] h-8 text-sm">
-                                <SelectValue placeholder="Select client..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {data.clients
-                                  .filter((c) => !empNode.clients.some((ec) => ec.client.id === c.id))
-                                  .map((client) => (
-                                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                            <div className="flex gap-2">
+                              <Select
+                                value={newClientId}
+                                onValueChange={(v) => { setNewClientId(v ?? ""); setNewProjectId(""); }}
+                              >
+                                <SelectTrigger className="border-[#e2e4e7] w-[160px] h-8 text-sm">
+                                  <SelectValue placeholder="Client..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {data.clients.map((c) => (
+                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                                   ))}
-                              </SelectContent>
-                            </Select>
+                                </SelectContent>
+                              </Select>
+                              <Select
+                                value={newProjectId}
+                                onValueChange={(v) => setNewProjectId(v ?? "")}
+                                disabled={!newClientId}
+                              >
+                                <SelectTrigger className="border-[#e2e4e7] w-[180px] h-8 text-sm">
+                                  <SelectValue placeholder="Project..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {(data.clients.find((c) => c.id === newClientId)?.projects ?? []).map((p) => (
+                                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </TableCell>
+                          <TableCell />
                           <TableCell className="text-center">
                             <Input
                               type="number"
                               min={0}
-                              max={100}
                               step={1}
-                              value={newClientPercent}
-                              onChange={(e) => setNewClientPercent(e.target.value)}
+                              value={newProjectDays}
+                              onChange={(e) => setNewProjectDays(e.target.value)}
                               className="w-16 mx-auto text-center border-[#e2e4e7] h-8 text-sm"
-                              placeholder="50"
+                              placeholder="5"
                             />
-                          </TableCell>
-                          <TableCell className="text-center text-xs text-[#747577]">
-                            {newClientPercent ? `${percentageToDays(Math.round(parseFloat(newClientPercent) || 0), empNode.availDays)}d` : "-"}
                           </TableCell>
                           <TableCell />
                           <TableCell />
                           <TableCell>
                             <div className="flex gap-0.5">
-                              <Button size="sm" onClick={() => handleAddClientAllocation(empNode.employee.id)} disabled={!newClientId} className="bg-[#006284] hover:bg-[#004d68] text-white text-xs h-7 px-2">
+                              <Button size="sm" onClick={() => handleAddEmployeeAllocation(empNode.employee.id)} disabled={!newProjectId} className="bg-[#006284] hover:bg-[#004d68] text-white text-xs h-7 px-2">
                                 Add
                               </Button>
-                              <Button size="sm" variant="ghost" onClick={() => { setAddingClientTo(null); setNewClientId(""); setNewClientPercent(""); }} className="text-[#747577] text-xs h-7 px-1">
+                              <Button size="sm" variant="ghost" onClick={() => { setAddingClientTo(null); setNewClientId(""); setNewProjectId(""); setNewProjectDays(""); }} className="text-[#747577] text-xs h-7 px-1">
                                 &times;
                               </Button>
                             </div>
