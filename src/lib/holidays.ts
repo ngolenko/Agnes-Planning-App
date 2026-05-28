@@ -52,21 +52,27 @@ function addDays(m: number, d: number, offset: number): { month: number; day: nu
   return { month: date.getMonth(), day: date.getDate() };
 }
 
+// DE holidays = federal holidays + Bavarian state holidays (MultiBase is in Bavaria).
 function getDeHolidays(year: number): Holiday[] {
   const easter = westernEaster(year);
   const goodFriday = addDays(easter.month, easter.day, -2);
   const easterMonday = addDays(easter.month, easter.day, 1);
   const ascension = addDays(easter.month, easter.day, 39);
   const whitMonday = addDays(easter.month, easter.day, 50);
+  const corpusChristi = addDays(easter.month, easter.day, 60);
 
   return [
     { month: 0, day: 1, name: "New Year's Day" },
+    { month: 0, day: 6, name: "Epiphany" },
     { month: goodFriday.month, day: goodFriday.day, name: "Good Friday" },
     { month: easterMonday.month, day: easterMonday.day, name: "Easter Monday" },
     { month: 4, day: 1, name: "Labour Day" },
     { month: ascension.month, day: ascension.day, name: "Ascension Day" },
     { month: whitMonday.month, day: whitMonday.day, name: "Whit Monday" },
+    { month: corpusChristi.month, day: corpusChristi.day, name: "Corpus Christi" },
+    { month: 7, day: 15, name: "Assumption of Mary" },
     { month: 9, day: 3, name: "German Unity Day" },
+    { month: 10, day: 1, name: "All Saints' Day" },
     { month: 11, day: 25, name: "Christmas Day" },
     { month: 11, day: 26, name: "2nd Day of Christmas" },
   ];
@@ -121,10 +127,16 @@ export function getPublicHolidaysInMonth(
     PUBLIC_HOLIDAYS[country]?.[year] ??
     (country === "DE" ? getDeHolidays(year) : getRoHolidays(year));
 
+  // Dedupe holidays falling on the same calendar day (e.g. RO Orthodox Whit Monday
+  // and Children's Day both land on June 1, 2026 — one calendar day, one day off).
+  const seen = new Set<number>();
   return holidays.filter((h) => {
     if (h.month !== month) return false;
     const date = new Date(year, h.month, h.day);
     const dow = date.getDay();
-    return dow !== 0 && dow !== 6; // exclude weekends
+    if (dow === 0 || dow === 6) return false;
+    if (seen.has(h.day)) return false;
+    seen.add(h.day);
+    return true;
   });
 }

@@ -88,15 +88,18 @@ export default function TimeOffPage() {
     fetchEmployeeDetail();
   }, [fetchEmployeeDetail]);
 
-  // Build summary table data
+  // Build summary table data. For part-timers, scale calendar-day vacation/sick by
+  // capacity ratio so the "days off" reflects actual work-time lost (1 calendar day
+  // for a 2.5d/week employee = 0.5 work days).
   const summaries: EmployeeSummary[] = employees.map((emp) => {
     const empTimeOff = timeOff.filter((t) => t.employeeId === emp.id);
     const empUnbillable = unbillable
       .filter((u) => u.employeeId === emp.id)
       .reduce((s, u) => s + u.plannedDays, 0);
 
-    const vacation = empTimeOff.filter((t) => t.type === "vacation").length;
-    const sick = empTimeOff.filter((t) => t.type === "sick").length;
+    const capacityRatio = emp.weeklyCapacityDays / 5;
+    const vacation = empTimeOff.filter((t) => t.type === "vacation").length * capacityRatio;
+    const sick = empTimeOff.filter((t) => t.type === "sick").length * capacityRatio;
 
     return {
       employee: emp,
@@ -261,14 +264,14 @@ export default function TimeOffPage() {
                     </TableCell>
                     <TableCell className="text-center">
                       {s.vacation > 0 ? (
-                        <Badge className="bg-[#006284]/10 text-[#006284] border-0">{s.vacation}d</Badge>
+                        <Badge className="bg-[#006284]/10 text-[#006284] border-0">{Number(s.vacation.toFixed(1))}d</Badge>
                       ) : (
                         <span className="text-[#e2e4e7]">-</span>
                       )}
                     </TableCell>
                     <TableCell className="text-center">
                       {s.sick > 0 ? (
-                        <Badge className="bg-red-100 text-red-700 border-0">{s.sick}d</Badge>
+                        <Badge className="bg-red-100 text-red-700 border-0">{Number(s.sick.toFixed(1))}d</Badge>
                       ) : (
                         <span className="text-[#e2e4e7]">-</span>
                       )}

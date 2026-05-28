@@ -2,10 +2,25 @@ import { describe, it, expect } from "vitest";
 import { getPublicHolidaysInMonth, PUBLIC_HOLIDAYS } from "../holidays";
 
 describe("PUBLIC_HOLIDAYS", () => {
-  it("DE has 9 holidays per year", () => {
-    expect(PUBLIC_HOLIDAYS.DE[2025].length).toBe(9);
-    expect(PUBLIC_HOLIDAYS.DE[2026].length).toBe(9);
-    expect(PUBLIC_HOLIDAYS.DE[2027].length).toBe(9);
+  it("DE has 13 holidays per year (Bavaria: 9 federal + 4 state)", () => {
+    expect(PUBLIC_HOLIDAYS.DE[2025].length).toBe(13);
+    expect(PUBLIC_HOLIDAYS.DE[2026].length).toBe(13);
+    expect(PUBLIC_HOLIDAYS.DE[2027].length).toBe(13);
+  });
+
+  it("DE includes Bavarian-specific holidays", () => {
+    const names2026 = PUBLIC_HOLIDAYS.DE[2026].map((h) => h.name);
+    expect(names2026).toContain("Epiphany");
+    expect(names2026).toContain("Corpus Christi");
+    expect(names2026).toContain("Assumption of Mary");
+    expect(names2026).toContain("All Saints' Day");
+  });
+
+  it("DE Corpus Christi 2026 falls on Thursday June 4 (Easter Apr 5 + 60 days)", () => {
+    const corpus = PUBLIC_HOLIDAYS.DE[2026].find((h) => h.name === "Corpus Christi");
+    expect(corpus).toBeDefined();
+    expect(corpus!.month).toBe(5); // June
+    expect(corpus!.day).toBe(4);
   });
 
   it("RO has 15 holidays per year", () => {
@@ -58,10 +73,16 @@ describe("PUBLIC_HOLIDAYS", () => {
 });
 
 describe("getPublicHolidaysInMonth", () => {
-  it("DE January 2026 has 1 weekday holiday (New Year is Thursday)", () => {
+  it("DE January 2026 has 2 weekday holidays (New Year Thu + Epiphany Tue)", () => {
     const holidays = getPublicHolidaysInMonth("DE", 2026, 0);
+    expect(holidays.length).toBe(2);
+    expect(holidays.map((h) => h.name).sort()).toEqual(["Epiphany", "New Year's Day"]);
+  });
+
+  it("DE June 2026 has 1 weekday holiday (Corpus Christi Thu Jun 4)", () => {
+    const holidays = getPublicHolidaysInMonth("DE", 2026, 5);
     expect(holidays.length).toBe(1);
-    expect(holidays[0].name).toBe("New Year's Day");
+    expect(holidays[0].name).toBe("Corpus Christi");
   });
 
   it("RO January 2026 has 2 weekday holidays (Jan 1 Thu, Jan 2 Fri, Jan 24 Sat)", () => {

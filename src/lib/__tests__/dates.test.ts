@@ -77,9 +77,18 @@ describe("getWorkingDaysInWeek", () => {
 });
 
 describe("getWorkingDaysInMonth with country", () => {
-  it("DE January 2026 has 21 working days (22 weekdays minus 1 holiday: Jan 1 Thu)", () => {
-    // 22 weekdays in Jan 2026, minus New Year's Day (Thu Jan 1)
-    expect(getWorkingDaysInMonth(2026, 0, "DE")).toBe(21);
+  it("DE January 2026 has 20 working days (22 weekdays minus Jan 1 Thu + Jan 6 Tue)", () => {
+    // 22 weekdays minus New Year (Thu Jan 1) and Epiphany (Tue Jan 6, Bavarian)
+    expect(getWorkingDaysInMonth(2026, 0, "DE")).toBe(20);
+  });
+
+  it("DE June 2026 has 21 working days (22 weekdays minus Corpus Christi Thu Jun 4)", () => {
+    // Bavarian holiday — was the user-reported bug before the fix.
+    expect(getWorkingDaysInMonth(2026, 5, "DE")).toBe(21);
+  });
+
+  it("RO June 2026 has 21 working days (22 weekdays minus Children's Day Mon Jun 1)", () => {
+    expect(getWorkingDaysInMonth(2026, 5, "RO")).toBe(21);
   });
 
   it("RO January 2026 has 20 working days (22 weekdays minus 2 holidays: Jan 1 Thu, Jan 2 Fri)", () => {

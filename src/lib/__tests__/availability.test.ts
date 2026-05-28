@@ -74,16 +74,14 @@ describe("percentageToDays", () => {
     expect(percentageToDays(0, 22)).toBe(0);
   });
 
-  it("rounds 3.6 up to 4 (80% of 22 = 17.6 → 18)", () => {
-    expect(percentageToDays(80, 22)).toBe(18);
+  it("returns fractional days without rounding (80% of 22 = 17.6)", () => {
+    expect(percentageToDays(80, 22)).toBeCloseTo(17.6, 5);
   });
 
-  it("rounds 3.4 down to 3 (15% of 22 = 3.3 → 3)", () => {
-    expect(percentageToDays(15, 22)).toBe(3);
-  });
-
-  it("rounds 50% of 21 = 10.5 → 11 (standard rounding)", () => {
-    expect(percentageToDays(50, 21)).toBe(11);
+  it("preserves fractional days for a part-timer (70% of 11 = 7.7)", () => {
+    // The 70%→72% drift bug: previously this rounded to 8, then 8/11 re-derived as 73%.
+    expect(percentageToDays(70, 11)).toBeCloseTo(7.7, 5);
+    expect(daysToPercentage(percentageToDays(70, 11), 11)).toBe(70);
   });
 
   it("returns 0 when available days is 0", () => {
@@ -92,6 +90,37 @@ describe("percentageToDays", () => {
 
   it("returns 0 when available days is negative", () => {
     expect(percentageToDays(80, -5)).toBe(0);
+  });
+});
+
+describe("getEmployeeAvailableDays — part-time scaling", () => {
+  const empId = "emp1";
+
+  it("scales time off by capacity ratio for a 2.5d/week employee", () => {
+    // Masha: 11 work-day capacity, 2 calendar vacation days
+    // Old behavior: 11 - 2 = 9 (overcounted — she only loses 1 work-day equivalent)
+    // New behavior: 11 - 2*(2.5/5) = 10
+    const timeOff: TimeOff[] = [
+      { id: "1", employeeId: empId, date: "2026-06-01", type: "vacation", status: "confirmed" },
+      { id: "2", employeeId: empId, date: "2026-06-02", type: "vacation", status: "confirmed" },
+    ];
+    expect(getEmployeeAvailableDays(empId, 11, timeOff, [], 2.5)).toBe(10);
+  });
+
+  it("scales time off for a 4d/week employee", () => {
+    // Martin: 18-day capacity, 5 calendar days off = 4 work-day equivalent
+    const timeOff: TimeOff[] = Array.from({ length: 5 }, (_, i) => ({
+      id: String(i), employeeId: empId, date: `2026-06-0${i + 1}`,
+      type: "vacation" as const, status: "confirmed" as const,
+    }));
+    expect(getEmployeeAvailableDays(empId, 18, timeOff, [], 4)).toBe(14);
+  });
+
+  it("does not scale unbillable (stored as real work days already)", () => {
+    const unbillable: UnbillableTime[] = [
+      { id: "1", employeeId: empId, weekStartDate: "2026-06-01", category: "internal", plannedDays: 1 },
+    ];
+    expect(getEmployeeAvailableDays(empId, 11, [], unbillable, 2.5)).toBe(10);
   });
 });
 

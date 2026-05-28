@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { PlanningData, Employee } from "@/lib/types";
 import { getWorkingDaysInMonth, getEmployeeWorkingDaysInMonth, formatMonthYear } from "@/lib/dates";
-import { getEmployeeAvailableDays, daysToPercentage } from "@/lib/availability";
+import { getEmployeeAvailableDays, daysToPercentage, formatDays } from "@/lib/availability";
 
 export default function EmployeePage() {
   const params = useParams();
@@ -93,9 +93,10 @@ export default function EmployeePage() {
   const empUnbillable = data.unbillable.filter((u) => u.employeeId === employeeId);
   const empAllocations = data.allocations.filter((a) => a.employeeId === employeeId);
 
-  const timeOffDays = empTimeOff.length;
-  const unbillableDays = Math.round(empUnbillable.reduce((s, u) => s + u.plannedDays, 0));
-  const available = getEmployeeAvailableDays(employeeId, workingDays, data.timeOff, data.unbillable);
+  const capacityRatio = employee.weeklyCapacityDays / 5;
+  const timeOffDays = empTimeOff.length * capacityRatio;
+  const unbillableDays = empUnbillable.reduce((s, u) => s + u.plannedDays, 0);
+  const available = getEmployeeAvailableDays(employeeId, workingDays, data.timeOff, data.unbillable, employee.weeklyCapacityDays);
   const totalPlanned = Math.round(empAllocations.reduce((s, a) => s + a.plannedDays, 0));
   const utilization = available > 0 ? Math.round((totalPlanned / available) * 100) : 0;
 
@@ -211,7 +212,7 @@ export default function EmployeePage() {
                 <div className="text-xs text-[#747577]">Working Days</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-[#006284]" style={{ fontFamily: "var(--font-poppins)" }}>{available}d</div>
+                <div className="text-2xl font-bold text-[#006284]" style={{ fontFamily: "var(--font-poppins)" }}>{formatDays(available)}d</div>
                 <div className="text-xs text-[#747577]">Available</div>
               </div>
             </div>
@@ -221,11 +222,11 @@ export default function EmployeePage() {
           <CardContent className="pt-5 pb-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="text-2xl font-bold text-[#faa61a]" style={{ fontFamily: "var(--font-poppins)" }}>{timeOffDays}d</div>
+                <div className="text-2xl font-bold text-[#faa61a]" style={{ fontFamily: "var(--font-poppins)" }}>{formatDays(timeOffDays)}d</div>
                 <div className="text-xs text-[#747577]">Time Off</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-[#87d3df]" style={{ fontFamily: "var(--font-poppins)" }}>{unbillableDays}d</div>
+                <div className="text-2xl font-bold text-[#87d3df]" style={{ fontFamily: "var(--font-poppins)" }}>{formatDays(unbillableDays)}d</div>
                 <div className="text-xs text-[#747577]">Unbillable</div>
               </div>
             </div>
@@ -235,7 +236,7 @@ export default function EmployeePage() {
           <CardContent className="pt-5 pb-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className={`text-2xl font-bold ${totalPlanned > available ? "text-red-600" : "text-[#006284]"}`} style={{ fontFamily: "var(--font-poppins)" }}>{totalPlanned}d</div>
+                <div className={`text-2xl font-bold ${totalPlanned > available ? "text-red-600" : "text-[#006284]"}`} style={{ fontFamily: "var(--font-poppins)" }}>{formatDays(totalPlanned)}d</div>
                 <div className="text-xs text-[#747577]">Allocated</div>
               </div>
               <div>

@@ -30,8 +30,10 @@ import { getWorkingDaysInMonth, getEmployeeWorkingDaysInMonth, formatMonthYear, 
 import type { CountryCode } from "@/lib/types";
 import {
   getEmployeeAvailableDays,
+  getEmployeeTimeOffWorkDays,
   percentageToDays,
   daysToPercentage,
+  formatDays,
 } from "@/lib/availability";
 
 export function PlanningGrid() {
@@ -124,7 +126,8 @@ export function PlanningGrid() {
   function getEmployeeAvail(empId: string): number {
     const emp = data!.employees.find((e) => e.id === empId);
     const empWorkingDays = emp ? getWorkingDaysForEmployee(emp) : workingDays;
-    return getEmployeeAvailableDays(empId, empWorkingDays, data!.timeOff, data!.unbillable);
+    const capacity = emp?.weeklyCapacityDays ?? 5;
+    return getEmployeeAvailableDays(empId, empWorkingDays, data!.timeOff, data!.unbillable, capacity);
   }
 
   function getMondays(): Date[] {
@@ -139,7 +142,6 @@ export function PlanningGrid() {
   }
 
   async function savePersonAllocation(employeeId: string, projectId: string, days: number, skipRefetch = false) {
-    days = Math.round(days);
     const mondays = getMondays();
     const existing = data!.allocations.filter(
       (a) => a.employeeId === employeeId && a.projectId === projectId
@@ -148,12 +150,13 @@ export function PlanningGrid() {
       await fetch(`/api/allocations/${a.id}`, { method: "DELETE" });
     }
     if (days > 0 && mondays.length > 0) {
-      // Distribute days across weeks, ensuring the total matches exactly
-      let remaining = days;
+      // Distribute fractional days across weeks; last week takes the exact remainder
+      // so the sum across weeks equals `days` precisely (no rounding drift).
+      const perWeek = days / mondays.length;
+      let allocated = 0;
       for (let i = 0; i < mondays.length; i++) {
-        const weeksLeft = mondays.length - i;
-        const thisWeek = Math.floor(remaining / weeksLeft);
-        remaining -= thisWeek;
+        const thisWeek = i === mondays.length - 1 ? days - allocated : perWeek;
+        allocated += thisWeek;
         await fetch("/api/allocations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -195,15 +198,13 @@ export function PlanningGrid() {
     .filter((emp) => emp.isActive)
     .map((emp) => {
       const availDays = getEmployeeAvail(emp.id);
-      const timeOffDays = data!.timeOff.filter((t) => t.employeeId === emp.id).length;
-      const unbillableDays = Math.round(data!.unbillable.filter((u) => u.employeeId === emp.id).reduce((s, u) => s + u.plannedDays, 0));
+      const timeOffDays = getEmployeeTimeOffWorkDays(emp.id, data!.timeOff, emp.weeklyCapacityDays);
+      const unbillableDays = data!.unbillable.filter((u) => u.employeeId === emp.id).reduce((s, u) => s + u.plannedDays, 0);
       const clientAllocs = clientsWithProjects.map((client) => {
         const clientProjectIds = new Set(client.projects?.map((p) => p.id) || []);
-        const days = Math.round(
-          data!.allocations
-            .filter((a) => a.employeeId === emp.id && clientProjectIds.has(a.projectId))
-            .reduce((s, a) => s + a.plannedDays, 0)
-        );
+        const days = data!.allocations
+          .filter((a) => a.employeeId === emp.id && clientProjectIds.has(a.projectId))
+          .reduce((s, a) => s + a.plannedDays, 0);
         // Use user-entered percentage if available, otherwise derive from days
         const overrideKey = `${emp.id}::${client.id}`;
         const percent = percentOverrides.has(overrideKey)
@@ -245,33 +246,31 @@ export function PlanningGrid() {
 
     // Multiple projects — check existing split and scale proportionally
     const existingByProject = projects.map((proj) => {
-      const days = Math.round(
-        data!.allocations
-          .filter((a) => a.employeeId === employeeId && a.projectId === proj.id)
-          .reduce((s, a) => s + a.plannedDays, 0)
-      );
+      const days = data!.allocations
+        .filter((a) => a.employeeId === employeeId && a.projectId === proj.id)
+        .reduce((s, a) => s + a.plannedDays, 0);
       return { project: proj, days };
     });
 
     const oldTotal = existingByProject.reduce((s, p) => s + p.days, 0);
 
     if (oldTotal === 0) {
-      // No existing allocations — distribute evenly
-      const perProject = Math.floor(newTotalDays / projects.length);
-      let remaining = newTotalDays;
+      // No existing allocations — distribute evenly (last project takes exact remainder)
+      const perProject = newTotalDays / projects.length;
+      let allocated = 0;
       for (let i = 0; i < projects.length; i++) {
-        const days = i === projects.length - 1 ? remaining : perProject;
+        const days = i === projects.length - 1 ? newTotalDays - allocated : perProject;
+        allocated += days;
         await savePersonAllocation(employeeId, projects[i].id, days, true);
-        remaining -= perProject;
       }
     } else {
-      // Scale proportionally
+      // Scale proportionally (last project takes exact remainder)
       let allocated = 0;
       for (let i = 0; i < existingByProject.length; i++) {
         const entry = existingByProject[i];
         const newDays = i === existingByProject.length - 1
           ? newTotalDays - allocated
-          : Math.round((entry.days / oldTotal) * newTotalDays);
+          : (entry.days / oldTotal) * newTotalDays;
         await savePersonAllocation(employeeId, entry.project.id, Math.max(0, newDays), true);
         allocated += newDays;
       }
@@ -308,9 +307,6 @@ export function PlanningGrid() {
       }
 
       for (const entry of clientMap.values()) {
-        for (const p of entry.projects) {
-          p.days = Math.round(p.days);
-        }
         entry.totalDays = entry.projects.reduce((s, p) => s + p.days, 0);
       }
 
@@ -507,9 +503,9 @@ export function PlanningGrid() {
                     <TableCell className="text-center text-[#747577] font-medium">
                       <span
                         className="cursor-help border-b border-dotted border-[#747577]"
-                        title={`${getWorkingDaysForEmployee(row.employee)}d working days${row.timeOffDays > 0 ? `\n- ${row.timeOffDays}d time off` : ""}${row.unbillableDays > 0 ? `\n- ${row.unbillableDays}d unbillable` : ""}\n= ${row.availDays}d available`}
+                        title={`${getWorkingDaysForEmployee(row.employee)}d working days${row.timeOffDays > 0 ? `\n- ${formatDays(row.timeOffDays)}d time off` : ""}${row.unbillableDays > 0 ? `\n- ${formatDays(row.unbillableDays)}d unbillable` : ""}\n= ${formatDays(row.availDays)}d available`}
                       >
-                        {row.availDays}d
+                        {formatDays(row.availDays)}d
                       </span>
                     </TableCell>
 
@@ -527,7 +523,7 @@ export function PlanningGrid() {
                               suffix="%"
                               step={1}
                             />
-                            <span className="text-[10px] text-[#747577]">{ca.days}d</span>
+                            <span className="text-[10px] text-[#747577]">{formatDays(ca.days)}d</span>
                           </div>
                         ) : (
                           <InlineEdit
@@ -553,7 +549,7 @@ export function PlanningGrid() {
                       <span className={row.totalPercent > 100 ? "text-red-600" : row.totalPercent >= 80 ? "text-[#006284]" : "text-[#faa61a]"}>
                         {row.totalPercent}%
                       </span>
-                      <div className="text-[10px] font-normal text-[#747577]">{row.totalDays}d</div>
+                      <div className="text-[10px] font-normal text-[#747577]">{formatDays(row.totalDays)}d</div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -568,7 +564,7 @@ export function PlanningGrid() {
                         <span className="font-bold text-[#000]" style={{ fontFamily: "var(--font-poppins)" }}>Total</span>
                       </TableCell>
                       <TableCell className="text-center font-bold text-[#747577]">
-                        {Math.round(totalAvailable)}d
+                        {formatDays(totalAvailable)}d
                       </TableCell>
                       {clientsWithProjects.map((client) => {
                         const clientProjectIds = new Set(client.projects?.map((p) => p.id) || []);
@@ -653,24 +649,24 @@ export function PlanningGrid() {
                         </TableCell>
                         <TableCell
                           className="text-center"
-                          title={`Utilization = ${Math.round(empNode.allocatedDays)}d planned / ${empNode.availDays}d available`}
+                          title={`Utilization = ${formatDays(empNode.allocatedDays)}d planned / ${formatDays(empNode.availDays)}d available`}
                         >
                           <span className={`font-bold text-sm ${empNode.allocPercent > 100 ? "text-red-600" : empNode.allocPercent >= 80 ? "text-[#006284]" : "text-[#faa61a]"}`}>
                             {empNode.allocPercent}%
                           </span>
                           <div className="text-[10px] font-normal text-[#747577]">
-                            {Math.round(empNode.allocatedDays)}/{empNode.availDays}d
+                            {formatDays(empNode.allocatedDays)}/{formatDays(empNode.availDays)}d
                           </div>
                         </TableCell>
                         <TableCell className="text-center font-bold text-[#006284]">
-                          {Math.round(empNode.allocatedDays)}d
+                          {formatDays(empNode.allocatedDays)}d
                         </TableCell>
                         <TableCell className="text-center text-[#747577]">
-                          {empNode.availDays}d
+                          {formatDays(empNode.availDays)}d
                         </TableCell>
                         <TableCell className="text-center">
                           <span className={`font-medium ${empNode.remainingDays < 0 ? "text-red-600" : empNode.remainingDays === 0 ? "text-[#747577]" : "text-[#006284]"}`}>
-                            {Math.round(empNode.remainingDays)}d
+                            {formatDays(empNode.remainingDays)}d
                           </span>
                         </TableCell>
                         <TableCell>
@@ -723,7 +719,7 @@ export function PlanningGrid() {
                                 <span className="font-semibold text-[#006284] text-sm">{clientPercent}%</span>
                               </TableCell>
                               <TableCell className="text-center font-semibold text-[#006284]">
-                                {Math.round(clientNode.totalDays)}d
+                                {formatDays(clientNode.totalDays)}d
                               </TableCell>
                               <TableCell />
                               <TableCell />
