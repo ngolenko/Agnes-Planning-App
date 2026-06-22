@@ -190,11 +190,17 @@ export default function ManagePage() {
     return budget?.projects || [];
   };
 
-  // Helper: get unassigned projects (no budget) for a client
+  // Helper: get unassigned projects (not in any budget) for a client
   const getUnassignedProjects = (clientId: string) => {
     const client = clients.find((c) => c.id === clientId);
     if (!client?.projects) return [];
-    return client.projects.filter((p) => !p.budgetId);
+    const assignedIds = new Set(
+      budgets
+        .filter((b) => b.clientId === clientId)
+        .flatMap((b) => b.projects || [])
+        .map((p) => p.id)
+    );
+    return client.projects.filter((p) => !assignedIds.has(p.id));
   };
 
   // Helper: invoiced days for a project (up to lastInvoiceDate)
