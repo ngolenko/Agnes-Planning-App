@@ -16,13 +16,33 @@ Easy Auth (Entra) is already configured on the web app. App settings (DATABASE_U
 
 ---
 
-## Deploying a new version
+## Fast deploy (~3-4 min) — use this
 
-### 1. Build the zip
-
-Run in PowerShell from the repo root:
+Builds locally, ships only the standalone Next.js output — no remote `npm install`.
 
 ```powershell
+.\scripts\deploy-fast.ps1
+```
+
+What it does:
+1. `next build` locally (~2 min on dev machine)
+2. Copies `.next/static` and `public` into `.next/standalone`
+3. Zips only the standalone artifacts (~20-50 MB)
+4. Deploys the zip (Azure just extracts and starts — no build step)
+5. Restarts the app
+
+Azure is already configured for this:
+- `SCM_DO_BUILD_DURING_DEPLOYMENT=false` (skips Oryx)
+- Startup command: `node server.js`
+
+---
+
+## Slow deploy (~23 min) — legacy, do not use
+
+Left here for reference only. Requires SCM basic auth to be enabled.
+
+```powershell
+# Build the zip (source only, no .next or node_modules)
 $zipPath = "C:/Users/idanc/AppData/Local/Temp/agnes-deploy.zip"
 Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
 $sourceDir = "c:\Users\idanc\repos\Agnes-Planning-App"
@@ -38,36 +58,29 @@ foreach ($file in $files) {
     $null = [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $file.FullName, $relative)
 }
 $zip.Dispose()
-Write-Host "Created $zipPath ($([math]::Round((Get-Item $zipPath).Length/1MB,2)) MB, $($files.Count) files)"
-```
 
-The zip must use **forward slashes** in entry paths (the script above handles this). Do not include `.next/`, `node_modules/`, `.env.local`.
-
-### 2. Deploy
-
-```powershell
+# Deploy (Oryx remote build: npm install ~17min + next build ~6min)
 az webapp deployment source config-zip `
   --subscription e612cd39-37d4-4af0-aa65-b8e3288aff25 `
   --resource-group MBTimeRG `
   --name agnes-planning `
-  --src "C:/Users/idanc/AppData/Local/Temp/agnes-deploy.zip"
+  --src $zipPath
 ```
 
-The az CLI will timeout after ~17 minutes but **the Oryx build continues on Azure**. The full build takes ~23 minutes on the B1 plan:
-- `npm install`: ~17 min (production deps including Tailwind CSS tools)
-- `next build`: ~6 min
+---
 
-To check if the build actually succeeded after CLI timeout:
+## Checking build/deploy status
+
 ```powershell
 az rest --method get `
   --url "https://management.azure.com/subscriptions/e612cd39-37d4-4af0-aa65-b8e3288aff25/resourceGroups/MBTimeRG/providers/Microsoft.Web/sites/agnes-planning/deployments?api-version=2022-03-01" `
   --query "value[0].{status:properties.status,complete:properties.complete}"
 ```
-`status: 4` = success.
+`status: 4` = success, `status: 1` = in progress, `status: 3` = failed.
 
-### 3. Restart after deployment
+---
 
-After deployment completes, the first container start may fail due to a race condition (the Oryx manifest file is written at the very end of the file copy, so the container init may miss it). **Restart once** to fix:
+## Restart after deployment
 
 ```powershell
 az webapp restart `
@@ -76,15 +89,21 @@ az webapp restart `
   --name agnes-planning
 ```
 
-The app will be ready ~160 seconds after restart (node_modules extraction ~90s + `next start` ~30s + overhead ~40s).
+App ready ~60 seconds after restart.
+
+---
+
+## SCM basic auth
+
+SCM basic auth publishing is enabled (`basicPublishingCredentialsPolicies/scm = true`).
+Required for zip deploy. Do not disable.
 
 ---
 
 ## Important: package.json constraint
 
 `@tailwindcss/postcss` and `tailwindcss` **must remain in `dependencies`** (not `devDependencies`).
-
-`NODE_ENV=production` is set on the web app, which causes `npm install` to skip devDependencies. These two packages are needed at `next build` time.
+These are needed at build time and the fast deploy does a local `next build`.
 
 ---
 
