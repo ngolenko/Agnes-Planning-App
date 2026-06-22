@@ -87,9 +87,15 @@ export async function GET(request: NextRequest) {
       include: { project: { include: { customer: true } }, employee: true },
     }),
     prisma.budgetRecord.findMany({
+      where: {
+        OR: [{ endDate: null }, { endDate: { gte: new Date() } }],
+      },
       include: {
         customer: true,
-        mappings: { include: { project: true } },
+        mappings: {
+          where: { project: { isActive: true } },
+          include: { project: true },
+        },
       },
       orderBy: { name: "asc" },
     }),

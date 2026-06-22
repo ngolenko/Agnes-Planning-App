@@ -38,7 +38,10 @@ export async function GET() {
   const budgets = await prisma.budgetRecord.findMany({
     include: {
       customer: true,
-      mappings: { include: { project: true } },
+      mappings: {
+        where: { project: { isActive: true } },
+        include: { project: true },
+      },
     },
     orderBy: { name: "asc" },
   });
