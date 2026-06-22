@@ -42,6 +42,7 @@ export default function ManagePage() {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
+  const [budgetTab, setBudgetTab] = useState<"active" | "inactive">("active");
 
   // Form state
   const [empName, setEmpName] = useState("");
@@ -179,8 +180,9 @@ export default function ManagePage() {
     setShowEmployeeDialog(true);
   };
 
-  // Helper: get budgets for a specific client
-  const getBudgetsForClient = (clientId: string) => budgets.filter((b) => b.clientId === clientId);
+  // Helper: get budgets for a specific client (filtered by active/inactive tab)
+  const getBudgetsForClient = (clientId: string) =>
+    budgets.filter((b) => b.clientId === clientId && b.isActive === (budgetTab === "active"));
 
   // Helper: get projects assigned to a budget
   const getProjectsForBudget = (budgetId: string) => {
@@ -262,16 +264,6 @@ export default function ManagePage() {
       );
     }
     return Math.round(monthAllocations.filter((a) => a.projectId === projectId).reduce((s, a) => s + a.plannedDays, 0));
-  };
-
-  // Helper: update lastInvoiceDate for a budget
-  const updateBudgetLastInvoiceDate = async (budgetId: string, date: string) => {
-    await fetch(`/api/budgets/${budgetId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lastInvoiceDate: date || null }),
-    });
-    fetchData();
   };
 
   const syncIntervals = async () => {
@@ -415,13 +407,32 @@ export default function ManagePage() {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Active / Inactive budget tabs */}
+          <div className="flex gap-0 border border-[#e2e4e7] rounded-md overflow-hidden mb-4 w-fit">
+            <button
+              className={`px-4 py-1.5 text-sm font-medium ${budgetTab === "active" ? "bg-[#006284] text-white" : "bg-white text-[#747577] hover:bg-[#f5f6f7]"}`}
+              onClick={() => setBudgetTab("active")}
+            >
+              Active
+            </button>
+            <button
+              className={`px-4 py-1.5 text-sm font-medium border-l border-[#e2e4e7] ${budgetTab === "inactive" ? "bg-[#006284] text-white" : "bg-white text-[#747577] hover:bg-[#f5f6f7]"}`}
+              onClick={() => setBudgetTab("inactive")}
+            >
+              Inactive
+            </button>
+          </div>
           {clients.length === 0 ? (
             <div className="text-center text-gray-400 py-8">
               No clients yet. Add your first client.
             </div>
           ) : (
             <div className="space-y-4">
-              {clients.map((client) => {
+              {clients.filter((client) => {
+                const clientBudgets = getBudgetsForClient(client.id);
+                const unassignedProjects = budgetTab === "active" ? getUnassignedProjects(client.id) : [];
+                return clientBudgets.length > 0 || unassignedProjects.length > 0;
+              }).map((client) => {
                 const clientBudgets = getBudgetsForClient(client.id);
                 const unassignedProjects = getUnassignedProjects(client.id);
 
@@ -460,13 +471,6 @@ export default function ManagePage() {
                               )}
                             </div>
                             <div className="flex items-center gap-2">
-                              <input
-                                type="date"
-                                className="text-xs border border-[#e2e4e7] rounded px-2 py-1 text-[#747577]"
-                                value={budget.lastInvoiceDate ? new Date(budget.lastInvoiceDate).toISOString().split("T")[0] : ""}
-                                onChange={(e) => updateBudgetLastInvoiceDate(budget.id, e.target.value)}
-                                title="Last invoice date"
-                              />
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -551,8 +555,8 @@ export default function ManagePage() {
                       );
                     })}
 
-                    {/* Unassigned Projects */}
-                    {unassignedProjects.length > 0 && (
+                    {/* Unassigned Projects (active tab only) */}
+                    {budgetTab === "active" && unassignedProjects.length > 0 && (
                       <div className="mt-2">
                         {clientBudgets.length > 0 && (
                           <div className="text-xs font-semibold text-[#747577] mb-1 px-3">Unassigned Projects</div>

@@ -8,13 +8,19 @@ function normalizeBudget(b: {
   endDate?: Date | null;
   budgetH?: { toNumber: () => number } | null;
   customer?: { id: number; customerName: string | null } | null;
-  mappings?: { project: { id: number; projectName: string | null; customerId: number | null } }[];
+  mappings?: { project: { id: number; projectName: string | null; customerId: number | null; lastInvoiceDate?: Date | null } }[];
 }) {
   const projects = (b.mappings ?? []).map((m) => ({
     id: String(m.project.id),
     name: m.project.projectName ?? "",
     clientId: String(m.project.customerId ?? ""),
   }));
+  const projectDates = (b.mappings ?? [])
+    .map((m) => m.project.lastInvoiceDate)
+    .filter((d): d is Date => d != null);
+  const lastInvoiceDate = projectDates.length > 0
+    ? new Date(Math.max(...projectDates.map((d) => d.getTime()))).toISOString()
+    : null;
   return {
     id: String(b.id),
     name: b.name,
@@ -22,6 +28,7 @@ function normalizeBudget(b: {
     budgetDays: b.budgetH != null ? Number(b.budgetH) / 8 : null,
     fabricBudgetId: String(b.id),
     isActive: b.endDate ? b.endDate >= new Date() : true,
+    lastInvoiceDate,
     client: b.customer ? { id: String(b.customer.id), name: b.customer.customerName ?? "" } : null,
     projects,
   };

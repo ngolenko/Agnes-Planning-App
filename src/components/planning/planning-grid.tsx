@@ -255,14 +255,8 @@ export function PlanningGrid() {
     const oldTotal = existingByProject.reduce((s, p) => s + p.days, 0);
 
     if (oldTotal === 0) {
-      // No existing allocations — distribute evenly (last project takes exact remainder)
-      const perProject = newTotalDays / projects.length;
-      let allocated = 0;
-      for (let i = 0; i < projects.length; i++) {
-        const days = i === projects.length - 1 ? newTotalDays - allocated : perProject;
-        allocated += days;
-        await savePersonAllocation(employeeId, projects[i].id, days, true);
-      }
+      // No existing split — put all days on the first project; refine per-project in Resource view
+      await savePersonAllocation(employeeId, projects[0].id, newTotalDays, true);
     } else {
       // Scale proportionally (last project takes exact remainder)
       let allocated = 0;
