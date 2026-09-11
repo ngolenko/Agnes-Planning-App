@@ -16,7 +16,7 @@ import {
 import { Budget, Client, Project, Allocation } from "@/lib/types";
 import { formatMonthYear } from "@/lib/dates";
 
-interface BudgetWithAllocations extends Budget {
+interface BudgetWithAllocations extends Omit<Budget, "projectInvoiced"> {
   client: Client;
   projects: Project[];
   invoicedSoFar: number;
@@ -42,23 +42,30 @@ export default function BudgetsPage() {
       fetch("/api/budgets"),
       fetch("/api/allocations"),
     ]);
-    const budgetsData: (Budget & { client: Client; projects: Project[] })[] = await budgetsRes.json();
+    const budgetsData: (Budget & {
+      client: Client;
+      projects: Project[];
+      invoicedSoFar?: number;
+      projectInvoiced?: Record<string, number>;
+    })[] = await budgetsRes.json();
     const allocationsData: Allocation[] = await allocationsRes.json();
 
     const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
 
     const enriched: BudgetWithAllocations[] = budgetsData.map((b) => {
       const projectIds = (b.projects || []).map((p) => p.id);
-      const projectIdSet = new Set(projectIds);
       const lastInvoiceDate = b.lastInvoiceDate ? new Date(b.lastInvoiceDate) : null;
 
-      const projectInvoiced = new Map<string, number>();
+      // Invoiced So Far comes from real billing data (budget.Invoice) provided by the API.
+      const invoicedSoFar = b.invoicedSoFar ?? 0;
+      const projectInvoiced = new Map<string, number>(Object.entries(b.projectInvoiced ?? {}));
+
+      // The remaining metrics are planning-based, derived from Agnes allocations.
       const projectSinceLastInvoice = new Map<string, number>();
       const projectPlannedThisMonth = new Map<string, number>();
       const projectTotalUsed = new Map<string, number>();
 
       for (const pid of projectIds) {
-        let invoiced = 0;
         let since = 0;
         let thisMonth = 0;
         let total = 0;
@@ -69,11 +76,6 @@ export default function BudgetsPage() {
           const wsDate = new Date(ws);
 
           total += a.plannedDays;
-
-          // Invoiced: allocations up to lastInvoiceDate (if set)
-          if (lastInvoiceDate && wsDate <= lastInvoiceDate) {
-            invoiced += a.plannedDays;
-          }
 
           // Since last invoice: allocations after lastInvoiceDate, or all if no date
           if (lastInvoiceDate) {
@@ -86,13 +88,11 @@ export default function BudgetsPage() {
           if (ws.startsWith(monthStr)) thisMonth += a.plannedDays;
         }
 
-        projectInvoiced.set(pid, invoiced);
         projectSinceLastInvoice.set(pid, since);
         projectPlannedThisMonth.set(pid, thisMonth);
         projectTotalUsed.set(pid, total);
       }
 
-      const invoicedSoFar = projectIds.reduce((s, pid) => s + (projectInvoiced.get(pid) || 0), 0);
       const sinceLastInvoice = projectIds.reduce((s, pid) => s + (projectSinceLastInvoice.get(pid) || 0), 0);
       const plannedThisMonth = projectIds.reduce((s, pid) => s + (projectPlannedThisMonth.get(pid) || 0), 0);
       const totalUsed = projectIds.reduce((s, pid) => s + (projectTotalUsed.get(pid) || 0), 0);
@@ -270,7 +270,7 @@ export default function BudgetsPage() {
                     </TableHeader>
                     <TableBody>
                       {clientBudgets.map((budget) => {
-                        const remaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budget.totalUsed) : null;
+                        const remaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budget.invoicedSoFar - budget.sinceLastInvoice) : null;
                         const isExpanded = expandedBudgets.has(budget.id);
                         return (
                           <React.Fragment key={budget.id}>

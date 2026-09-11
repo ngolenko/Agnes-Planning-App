@@ -25,6 +25,10 @@ export interface Budget {
   fabricBudgetId: string | null;
   lastInvoiceDate: string | null;
   isActive: boolean;
+  /** Real invoiced days from budget.Invoice (hours ÷ 8). Provided by /api/budgets and /api/planning. */
+  invoicedSoFar?: number;
+  /** Per-project invoiced days, keyed by project id. */
+  projectInvoiced?: Record<string, number>;
   client?: Client;
   projects?: Project[];
 }

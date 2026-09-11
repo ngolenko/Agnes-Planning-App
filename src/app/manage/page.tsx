@@ -203,21 +203,14 @@ export default function ManagePage() {
     return client.projects.filter((p) => !assignedIds.has(p.id));
   };
 
-  // Helper: invoiced days for a project (up to lastInvoiceDate)
-  const getProjectInvoicedDays = (projectId: string, lastInvoiceDate: Date | null) => {
-    if (!lastInvoiceDate) return 0;
-    return Math.round(
-      allocations
-        .filter((a) => a.projectId === projectId && new Date(a.weekStartDate) <= lastInvoiceDate)
-        .reduce((s, a) => s + a.plannedDays, 0)
-    );
+  // Helper: invoiced days for a project — real billing data (budget.Invoice) from the API.
+  const getProjectInvoicedDays = (projectId: string, budget: Budget) => {
+    return Math.round(budget.projectInvoiced?.[projectId] ?? 0);
   };
 
-  // Helper: invoiced days for a budget (sum across all projects, up to lastInvoiceDate)
+  // Helper: invoiced days for a budget — real billing total (budget.Invoice) from the API.
   const getBudgetInvoicedDays = (budget: Budget) => {
-    const budgetProjects = getProjectsForBudget(budget.id);
-    const lastInvoiceDate = budget.lastInvoiceDate ? new Date(budget.lastInvoiceDate) : null;
-    return budgetProjects.reduce((s, p) => s + getProjectInvoicedDays(p.id, lastInvoiceDate), 0);
+    return Math.round(budget.invoicedSoFar ?? 0);
   };
 
   // Helper: planned this month for a budget
@@ -249,15 +242,6 @@ export default function ManagePage() {
     );
   };
 
-  // Helper: total allocations ever for a budget (used for remaining calculation)
-  const getBudgetTotalUsed = (budget: Budget) => {
-    const budgetProjects = getProjectsForBudget(budget.id);
-    return Math.round(
-      allocations
-        .filter((a) => budgetProjects.some((p) => p.id === a.projectId))
-        .reduce((s, a) => s + a.plannedDays, 0)
-    );
-  };
 
   // Helper: allocations since last invoice for a project within a budget
   const getProjectSinceLastInvoice = (projectId: string, budget: Budget) => {
@@ -461,8 +445,7 @@ export default function ManagePage() {
                       const budgetInvoiced = getBudgetInvoicedDays(budget);
                       const budgetSinceInvoice = getBudgetSinceLastInvoice(budget);
                       const budgetPlannedMonth = getBudgetPlannedThisMonth(budget.id);
-                      const budgetTotalUsed = getBudgetTotalUsed(budget);
-                      const budgetRemaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budgetTotalUsed) : null;
+                      const budgetRemaining = budget.budgetDays != null ? Math.round(budget.budgetDays - budgetInvoiced - budgetSinceInvoice) : null;
                       const budgetProjectsList = getProjectsForBudget(budget.id);
 
                       return (
@@ -527,8 +510,7 @@ export default function ManagePage() {
                               </TableHeader>
                               <TableBody>
                                 {budgetProjectsList.map((proj) => {
-                                  const lastInvDate = budget.lastInvoiceDate ? new Date(budget.lastInvoiceDate) : null;
-                                  const usedDays = getProjectInvoicedDays(proj.id, lastInvDate);
+                                  const usedDays = getProjectInvoicedDays(proj.id, budget);
                                   const sinceInvoice = getProjectSinceLastInvoice(proj.id, budget);
                                   return (
                                     <TableRow key={proj.id}>

@@ -1,15 +1,20 @@
 import { prisma } from "@/lib/db";
+import { getInvoicedHours, HOURS_PER_DAY } from "@/lib/invoices";
 import { NextRequest, NextResponse } from "next/server";
 
-function normalizeBudget(b: {
-  id: number;
-  customerId: number;
-  name: string;
-  endDate?: Date | null;
-  budgetH?: { toNumber: () => number } | null;
-  customer?: { id: number; customerName: string | null } | null;
-  mappings?: { project: { id: number; projectName: string | null; customerId: number | null; lastInvoiceDate?: Date | null } }[];
-}) {
+function normalizeBudget(
+  b: {
+    id: number;
+    customerId: number;
+    name: string;
+    endDate?: Date | null;
+    budgetH?: { toNumber: () => number } | null;
+    customer?: { id: number; customerName: string | null } | null;
+    mappings?: { project: { id: number; projectName: string | null; customerId: number | null; lastInvoiceDate?: Date | null } }[];
+  },
+  invoicedHByBudget: Map<number, number>,
+  invoicedHByBudgetProject: Map<string, number>,
+) {
   const projects = (b.mappings ?? []).map((m) => ({
     id: String(m.project.id),
     name: m.project.projectName ?? "",
@@ -21,14 +26,26 @@ function normalizeBudget(b: {
   const lastInvoiceDate = projectDates.length > 0
     ? new Date(Math.max(...projectDates.map((d) => d.getTime()))).toISOString()
     : null;
+
+  // Actual invoiced amounts come from budget.Invoice (real billing data), not from
+  // Agnes planning allocations. Keyed by BudgetId, with a per-project breakdown by ProjectId.
+  const invoicedSoFar = (invoicedHByBudget.get(b.id) ?? 0) / HOURS_PER_DAY;
+  const projectInvoiced: Record<string, number> = {};
+  for (const m of b.mappings ?? []) {
+    const h = invoicedHByBudgetProject.get(`${b.id}:${m.project.id}`) ?? 0;
+    if (h) projectInvoiced[String(m.project.id)] = h / HOURS_PER_DAY;
+  }
+
   return {
     id: String(b.id),
     name: b.name,
     clientId: String(b.customerId),
-    budgetDays: b.budgetH != null ? Number(b.budgetH) / 8 : null,
+    budgetDays: b.budgetH != null ? Number(b.budgetH) / HOURS_PER_DAY : null,
     fabricBudgetId: String(b.id),
     isActive: b.endDate ? b.endDate >= new Date() : true,
     lastInvoiceDate,
+    invoicedSoFar,
+    projectInvoiced,
     client: b.customer ? { id: String(b.customer.id), name: b.customer.customerName ?? "" } : null,
     projects,
   };
@@ -45,7 +62,11 @@ export async function GET() {
     },
     orderBy: { name: "asc" },
   });
-  return NextResponse.json(budgets.map(normalizeBudget));
+
+  // Pull real invoiced hours for these budgets and aggregate per budget and per project.
+  const { byBudget, byBudgetProject } = await getInvoicedHours(budgets.map((b) => b.id));
+
+  return NextResponse.json(budgets.map((b) => normalizeBudget(b, byBudget, byBudgetProject)));
 }
 
 export async function POST(request: NextRequest) {

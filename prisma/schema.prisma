@@ -140,3 +140,16 @@ model MapBudgetProject {
   @@map("Map_Budget_Project")
   @@schema("budget")
 }
+
+model BudgetInvoice {
+  id          Int       @id @default(autoincrement()) @map("Id")
+  budgetId    Int?      @map("BudgetId")
+  projectId   Int?      @map("ProjectId")
+  customerId  Int?      @map("CustomerId")
+  invoiceDate DateTime? @map("InvoiceDate")
+  invoicedH   Decimal?  @map("InvoicedH") @db.Decimal(18, 2)
+  invoicedEur Decimal?  @map("InvoicedEUR") @db.Decimal(18, 2)
+
+  @@map("Invoice")
+  @@schema("budget")
+}

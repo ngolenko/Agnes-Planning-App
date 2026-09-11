@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { getInvoicedHours, HOURS_PER_DAY } from "@/lib/invoices";
 import { NextRequest, NextResponse } from "next/server";
 
 function normalizeAllocation(a: {
@@ -34,6 +35,16 @@ function normalizeAllocation(a: {
 }
 
 export async function GET(request: NextRequest) {
+  try {
+    return await planningGET(request);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    return NextResponse.json({ error: message, stack }, { status: 500 });
+  }
+}
+
+async function planningGET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const weekStart = searchParams.get("weekStart");
   const year = parseInt(searchParams.get("year") || new Date().getFullYear().toString());
@@ -121,6 +132,10 @@ export async function GET(request: NextRequest) {
     client: p.customer ? { id: String(p.customer.id), name: p.customer.customerName ?? "" } : null,
   });
 
+  // Real invoiced hours (budget.Invoice) for these budgets — same source as /api/budgets.
+  const { byBudget: invoicedHByBudget, byBudgetProject: invoicedHByBudgetProject } =
+    await getInvoicedHours(budgets.map((b) => b.id));
+
   const normalizeBudget = (b: {
     id: number;
     name: string;
@@ -128,17 +143,36 @@ export async function GET(request: NextRequest) {
     endDate?: Date | null;
     budgetH?: { toNumber: () => number } | null;
     customer?: { id: number; customerName: string | null } | null;
-    mappings?: { project: { id: number; projectName: string | null; customerId: number | null } }[];
-  }) => ({
-    id: String(b.id),
-    name: b.name,
-    clientId: String(b.customerId),
-    budgetDays: b.budgetH != null ? Number(b.budgetH) / 8 : null,
-    fabricBudgetId: String(b.id),
-    isActive: b.endDate ? b.endDate >= new Date() : true,
-    client: b.customer ? { id: String(b.customer.id), name: b.customer.customerName ?? "" } : null,
-    projects: (b.mappings ?? []).map((m) => normalizeProject(m.project)),
-  });
+    mappings?: { project: { id: number; projectName: string | null; customerId: number | null; lastInvoiceDate?: Date | null } }[];
+  }) => {
+    const projectDates = (b.mappings ?? [])
+      .map((m) => m.project.lastInvoiceDate)
+      .filter((d): d is Date => d != null);
+    const lastInvoiceDate = projectDates.length > 0
+      ? new Date(Math.max(...projectDates.map((d) => d.getTime()))).toISOString()
+      : null;
+
+    const invoicedSoFar = (invoicedHByBudget.get(b.id) ?? 0) / HOURS_PER_DAY;
+    const projectInvoiced: Record<string, number> = {};
+    for (const m of b.mappings ?? []) {
+      const h = invoicedHByBudgetProject.get(`${b.id}:${m.project.id}`) ?? 0;
+      if (h) projectInvoiced[String(m.project.id)] = h / HOURS_PER_DAY;
+    }
+
+    return {
+      id: String(b.id),
+      name: b.name,
+      clientId: String(b.customerId),
+      budgetDays: b.budgetH != null ? Number(b.budgetH) / HOURS_PER_DAY : null,
+      fabricBudgetId: String(b.id),
+      isActive: b.endDate ? b.endDate >= new Date() : true,
+      lastInvoiceDate,
+      invoicedSoFar,
+      projectInvoiced,
+      client: b.customer ? { id: String(b.customer.id), name: b.customer.customerName ?? "" } : null,
+      projects: (b.mappings ?? []).map((m) => normalizeProject(m.project)),
+    };
+  };
 
   const normalizeCustomer = (c: { id: number; customerName: string | null; projects?: { id: number; projectName: string | null; customerId: number | null }[] }) => ({
     id: String(c.id),

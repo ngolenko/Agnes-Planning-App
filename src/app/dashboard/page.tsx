@@ -69,16 +69,14 @@ export default function DashboardPage() {
     const totalPlanned = Math.round(clientAllocs.reduce((s, a) => s + a.plannedDays, 0));
 
     // Group by project
-    const projectMap = new Map<string, { projectName: string; projectId: string; days: number; employees: Set<string>; budgetId: string | null }>();
+    const projectMap = new Map<string, { projectName: string; projectId: string; days: number; employees: Set<string> }>();
     for (const a of clientAllocs) {
       if (!projectMap.has(a.projectId)) {
-        const proj = data.projects.find((p) => p.id === a.projectId);
         projectMap.set(a.projectId, {
           projectName: a.project?.name || "Unknown",
           projectId: a.projectId,
           days: 0,
           employees: new Set(),
-          budgetId: proj?.budgetId || null,
         });
       }
       const entry = projectMap.get(a.projectId)!;
@@ -111,7 +109,9 @@ export default function DashboardPage() {
       return { budget, projects: budgetProjects, budgetAllTimeUsed, budgetRemaining };
     });
 
-    const unassignedProjects = projects.filter((p) => !p.budgetId);
+    // Unassigned = projects with allocations that aren't in any of this client's budgets.
+    const assignedProjectIds = new Set(clientBudgets.flatMap((b) => (b.projects || []).map((p) => p.id)));
+    const unassignedProjects = projects.filter((p) => !assignedProjectIds.has(p.projectId));
 
     return {
       client,

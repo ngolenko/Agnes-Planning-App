@@ -979,16 +979,10 @@ export function PlanningGrid() {
             const lastDate = budget.lastInvoiceDate ? new Date(budget.lastInvoiceDate) : null;
             const allAllocs = data!.allAllocations || [];
 
-            // Invoiced: only allocations up to lastInvoiceDate
-            const invoicedSoFar = lastDate
-              ? Math.round(
-                  allAllocs
-                    .filter((a) => budgetProjectIds.has(a.projectId) && new Date(a.weekStartDate) <= lastDate)
-                    .reduce((s, a) => s + a.plannedDays, 0)
-                )
-              : 0;
+            // Invoiced So Far is real billing data (budget.Invoice) provided by the API.
+            const invoicedSoFar = Math.round(budget.invoicedSoFar ?? 0);
 
-            // Since last invoice: allocations after lastInvoiceDate, or all if no date
+            // Since last invoice: planned allocations after lastInvoiceDate, or all if no date
             let sinceLastInvoice: number;
             if (lastDate) {
               sinceLastInvoice = Math.round(
